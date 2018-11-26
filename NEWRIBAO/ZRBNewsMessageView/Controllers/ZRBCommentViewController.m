@@ -17,6 +17,8 @@
 
 @property (nonatomic, strong) ZRBLongCommentsJSONModel * allcommentsJSONModel;
 
+@property (nonatomic, assign) NSInteger didCaculateRowAtIndexInteger;
+
 @end
 
 @implementation ZRBCommentViewController
@@ -25,6 +27,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     _realRideInteger = 0;
+    _didCaculateRowAtIndexInteger = 0;
     
     _authorMutArray = [[NSMutableArray alloc] init];
     _contentMMutArray = [[NSMutableArray alloc] init];
@@ -73,6 +76,7 @@
     [_selectButton setImage:[UIImage imageNamed:@"9.png"] forState:UIControlStateNormal];
     [_selectButton addTarget:self action:@selector(spreadCellSection:) forControlEvents:UIControlEventTouchUpInside];
     _flag = 0;
+    _contentOffSetYHeight = 0;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -134,8 +138,29 @@
     }else{
         _flag--;
     }
+    NSInteger i = 0;
+    NSLog(@"_flag = %li",_flag);
+    if ( _flag == 1 ){
+        if ( _contentOffSetYHeight != 0 ){
+    _commentView.tableView.contentOffset = CGPointMake(0, _contentOffSetYHeight);
+        }else{
+            _commentView.tableView.contentOffset = CGPointMake(0, 245);
+        }
+        NSLog(@"_contentOffSetYHeight = %f",_contentOffSetYHeight);
+    }else{
+        if ( _contentOffSetYHeight != 0 ){
+        _commentView.tableView.contentOffset = CGPointMake(0, (_contentOffSetYHeight)*(-1));
+        }else{
+            _commentView.tableView.contentOffset = CGPointMake(0, -245);
+        }
+    }
+//    [_commentView.tableView mas_makeConstraints:^(MASConstraintMaker *make) {
+//        make.top.mas_equalTo(self.view.mas_top).offset(-50);
+//        make.width.mas_equalTo(self.view.mas_width);
+//        make.height.mas_equalTo(self.view.mas_height);
+//    }];
     [_commentView.tableView reloadSections:indexSet withRowAnimation:UITableViewRowAnimationFade];
-    
+//    _commentView.tableView.contentOffset
 //    通过协议传值把头视图弄到顶部
 }
 
@@ -158,6 +183,11 @@
     if ( indexPath.section == 0 && _longCommentsNumInteger != 0 ){
         if ( [self.allDataMutArray isKindOfClass:[NSArray class]] && self.allDataMutArray.count > 0 ){
     CGFloat cellHeight = [self.tempCell heightForModel:_allDataMutArray[0][indexPath.row]];
+            if ( _didCaculateRowAtIndexInteger < _longCommentsNumInteger ){
+                _contentOffSetYHeight += cellHeight;
+                _didCaculateRowAtIndexInteger++;
+            }
+            //这里可以计算第一组总高度
     return cellHeight;
         }else{
             return 300;
@@ -165,6 +195,7 @@
     }
     else if (indexPath.section == 1 && _shortCommentsNumInteger != 0 ){
         if ( [self.allShortDataMutArray isKindOfClass:[NSArray class]] && self.allShortDataMutArray.count > 0 ){
+            NSLog(@"这时的indexPath.row = %li",indexPath.row);
             CGFloat cellHeight = [self.shortTempCell heightForModel:_allShortDataMutArray[0][indexPath.row]];
             return cellHeight;
         }
@@ -184,6 +215,7 @@
     if ( shortCell == nil ){
         shortCell = [[ZRBCommentsTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"shortCommentCell"];
     }
+    [shortCell.expandButton addTarget:self action:@selector(pressExpandButton:) forControlEvents:UIControlEventTouchUpInside];
     
     if ( indexPath.section == 0 && _longCommentsNumInteger != 0 ){
         if ( [self.allDataMutArray isKindOfClass:[NSArray class]] && self.allDataMutArray.count > 0 ){
@@ -221,16 +253,53 @@
     return shortCell;
 }
 
+- (void)pressExpandButton:(UIButton *)idSender
+{
+    
+    //因为复用机制 走heightRowAtIndex方法 很多次是很正常的
+    //应该把实际效果显示到屏幕上去显示
+    //明天再尝试
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ZRBCommentsTableViewCell * cell = (ZRBCommentsTableViewCell *)idSender.superview.superview;
+    NSIndexPath * indexPath = [_commentView.tableView indexPathForCell:cell];
+    NSLog(@"indexPath.section = %li",indexPath.section);
+    NSLog(@"indexPath.row = %li",indexPath.row);
+    //在这里添加代理  在cell中执行代理
+    //这里需要传参
+    NSNotification * notification = [NSNotification notificationWithName:@"changHeightNoti" object:nil];
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
+    
+    //[_commentView.tableView beginUpdates];
+    NSIndexPath * nowIndexPath = [NSIndexPath indexPathForRow:indexPath.row inSection:indexPath.section];
+    NSArray * reloadIndexPaths = [NSArray arrayWithObjects:nowIndexPath, nil];
+    [_commentView.tableView reloadRowsAtIndexPaths:reloadIndexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
+    //[_commentView.tableView endUpdates];
+    
+    //还缺一个 得改变当前的那个选中的cell 的 reply_size 不是最后一个
+
+}
+
 
 
 - (void)fenethLongCommentsFromJSONModel
 {
     [[ZRBCommentManager sharedManager] fetchCommentsNumDataFormNewsViewWithIdString:_secondResaveIdString Succeed:^(ZRBNewsAdditionalJSONModel *additionalJSONModel) {
-        _realRideInteger = 1;
         _longCommentsNumInteger = 0;
         if ( additionalJSONModel.long_comments != 0 ){
             //执行长评论网络请求
             [[ZRBCommentManager sharedManager] fetchLongLongCommentsDataFromNewsViewWith:_secondResaveIdString Succeed:^(ZRBLongCommentsJSONModel *longCommentsJSONModel) {
+                
                 self.allcommentsJSONModel = longCommentsJSONModel;
                 NSMutableArray * dataArray = [[NSMutableArray alloc] init];
                 [dataArray addObject:longCommentsJSONModel.comments];
@@ -252,18 +321,17 @@
                 if ( ![replyStr isEqualToString:@"(\n    \"<null>\",\n    \"<null>\",\n    \"<null>\"\n)"]){
                 [_reply_toMutArray addObject:[longCommentsJSONModel.comments valueForKey:@"reply_to"]];
                 }
-                
-                //不知道这里需不需要更新视图 可以尝试一下
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [self.commentView.tableView reloadData];
-                });
             } error:^(NSError *error) {
                 NSLog(@"网络请求出错： %@",error);
             }];
-//            dispatch_async(dispatch_get_main_queue(), ^{
-//                [self.commentView.tableView reloadData];
-//            });
-            
+        }
+        if ( additionalJSONModel.long_comments == 0 ){
+            _realRideInteger = 1;
+            //不知道这里需不需要更新视图 可以尝试一下
+            dispatch_async(dispatch_get_main_queue(), ^{
+                _realRideInteger = 1;
+                [self.commentView.tableView reloadData];
+            });
         }
         if ( additionalJSONModel.short_comments != 0 ){
             [[ZRBCommentManager sharedManager] fetchShortShortCommentsDataFromNewsWith:_secondResaveIdString Succeed:^(ZRBLongCommentsJSONModel *longCommentsJSONModel) {
@@ -288,7 +356,7 @@
                     [_shortReplyMutArray addObject:[self.allcommentsJSONModel.comments valueForKey:@"reply_to"]];
                 //}
                 NSInteger i = 0;
-                for (i = 0; i < 10; i++) {
+                for (i = 0; i < 0; i++) {
                     //if ( [[NSString stringWithFormat:@"%@",_shortReplyMutArray[i]] isEqualToString:@"<null>"] ){
                         NSLog(@"str = %@",_shortReplyMutArray[0][i]);
                    // }

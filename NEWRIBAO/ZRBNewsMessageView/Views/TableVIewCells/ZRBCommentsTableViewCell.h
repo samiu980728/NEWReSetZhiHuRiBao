@@ -23,6 +23,7 @@
 
 @property (nonatomic, assign) CGFloat reply_toSize;
 
+@property (nonatomic, assign) CGFloat flodReply_toSize;
 
-
+@property (nonatomic, strong) UIButton * expandButton;
 @end

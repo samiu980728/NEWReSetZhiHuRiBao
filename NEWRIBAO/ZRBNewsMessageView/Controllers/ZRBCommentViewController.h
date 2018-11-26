@@ -71,6 +71,8 @@
 @property (nonatomic, assign) NSInteger flag;
 
 @property (nonatomic, assign) NSInteger realRideInteger;
+
+@property (nonatomic, assign) CGFloat contentOffSetYHeight;
 - (void)fenethLongCommentsFromJSONModel;
 
 @end

@@ -79,6 +79,14 @@
     [self.contentView addSubview:self.contentLabel];
     [self.contentView addSubview:self.approvalButton];
     [self.contentView addSubview:self.avatarImage];
+    [self.contentView addSubview:_expandButton];
+    
+    [self.expandButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.mas_equalTo(self.contentLabel.mas_right).offset(-40);
+        make.right.mas_equalTo(self.contentView.mas_right).offset(-10);
+        make.top.mas_equalTo(self.reply_toLabel.mas_bottom);
+        make.bottom.mas_equalTo(self.contentView.mas_bottom).offset(-5);
+    }];
     
     [self.avatarImage mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.mas_equalTo(self.contentView.mas_left).offset(5);
@@ -115,6 +123,7 @@
         
         make.height.mas_equalTo(20);
 #pragma mark  疑问下面这个一加 就不行啦 没有自适应的作用
+        make.bottom.mas_equalTo(self.contentView.mas_bottom).offset(-10);
 
 //        make.bottom.mas_equalTo(-10).offset(-20);
     }];
@@ -130,8 +139,12 @@
 
 - (void)setMessage:(ZRBCommentsJSONModel *)message
 {
-    
+    [self.lock lock];
+    //让 btn 的 tag == message独一无二的id
     //下一步 点击头视图 上移
+    _contentSize = 0;
+    _nameSize = 0;
+    _timeSize = 0;
     _reply_toSize = 0;
     _flodReply_toSize = 0;
     self.reply_toLabel.text = @"";
@@ -149,29 +162,29 @@
         self.reply_toLabel.textColor = [UIColor grayColor];
         //这里还没有把字符串添加进去
         allReplyStr = [NSString stringWithFormat:@"//%@: %@",replyAuthorStr,replyContentStr];
+        self.reply_toLabel.font = [UIFont systemFontOfSize:16];
         self.reply_toLabel.text = allReplyStr;
         NSLog(@"allReplyStr = %@",allReplyStr);
         
         //这里不能这样 需要单独算回复的评论高度
         _reply_toSize = [allReplyStr boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
         //用数组？
+        CGFloat realReplySize = _reply_toSize;
+        NSLog(@"realReplySize = %.2f",realReplySize);
         if ( !_expandButton.selected ){
-            
-            if ( _reply_toSize > 20 ){
-                //            UIButton * expandButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            if ( realReplySize > 50 ){
+                NSLog(@"122realReplySize = %.2f",realReplySize);
                 [_expandButton setTitle:@"展开" forState:UIControlStateNormal];
                 [_expandButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
                 [_expandButton setBackgroundColor:[UIColor yellowColor]];
-                //[_expandButton addTarget:self action:@selector(pressExpandButton:) forControlEvents:UIControlEventTouchUpInside];
-                [self.contentView addSubview:_expandButton];
-                [_expandButton mas_makeConstraints:^(MASConstraintMaker *make) {
-                    make.left.mas_equalTo(self.contentLabel.mas_right).offset(-40);
-                    make.right.mas_equalTo(self.contentView.mas_right).offset(-10);
-                    make.top.mas_equalTo(self.reply_toLabel.mas_bottom);
-                    make.bottom.mas_equalTo(self.contentView.mas_bottom).offset(-5);
-                }];
+//                [self.contentView addSubview:_expandButton];
+//                [_expandButton mas_makeConstraints:^(MASConstraintMaker *make) {
+//                    make.left.mas_equalTo(self.contentLabel.mas_right).offset(-40);
+//                    make.right.mas_equalTo(self.contentView.mas_right).offset(-10);
+//                    make.top.mas_equalTo(self.reply_toLabel.mas_bottom);
+//                    make.bottom.mas_equalTo(self.contentView.mas_bottom).offset(-5);
+//                }];
                 _flodReply_toSize = _reply_toSize;
-                _reply_toSize = 35;
             }
         }
         
@@ -179,8 +192,6 @@
             [_expandButton setTitle:@"收起" forState:UIControlStateSelected];
             [_expandButton setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
             [_expandButton setBackgroundColor:[UIColor yellowColor]];
-            //[_expandButton addTarget:self action:@selector(pressExpandButton:) forControlEvents:UIControlEventTouchUpInside];
-            [self.contentView addSubview:_expandButton];
             [_expandButton mas_makeConstraints:^(MASConstraintMaker *make) {
                 make.left.mas_equalTo(self.contentLabel.mas_right).offset(-40);
                 make.right.mas_equalTo(self.contentView.mas_right).offset(-10);
@@ -189,30 +200,14 @@
             }];
         }
         
-//        if ( _reply_toSize > 20 ){
-////            UIButton * expandButton = [UIButton buttonWithType:UIButtonTypeCustom];
-//            [_expandButton setTitle:@"展开" forState:UIControlStateNormal];
-//            [_expandButton setBackgroundColor:[UIColor yellowColor]];
-//            //[_expandButton addTarget:self action:@selector(pressExpandButton:) forControlEvents:UIControlEventTouchUpInside];
-//            [self.contentView addSubview:_expandButton];
-//            [_expandButton mas_makeConstraints:^(MASConstraintMaker *make) {
-//                make.left.mas_equalTo(self.contentLabel.mas_right).offset(-40);
-//                make.right.mas_equalTo(self.contentView.mas_right).offset(-10);
-//                make.top.mas_equalTo(self.reply_toLabel.mas_bottom);
-//                make.bottom.mas_equalTo(self.contentView.mas_bottom).offset(-5);
-//            }];
-//            _flodReply_toSize = _reply_toSize;
-//            _reply_toSize = 35;
-//        }
-        
         //如果reply_toSize > 50 那么新创建一个变量 返回50 保留 reply_toSize
         //然后 这里if 语句里面 新加一个button   给这个button创建一个点击事件 如果点击之后
         //重新传入height 然后通过通知 通知controller那边刷新界面
     }
 
     NSString * contString = [NSString stringWithFormat:@"%@",[message valueForKey:@"content"]];
-    self.contentLabel.text = contString;
     self.contentLabel.font = [UIFont systemFontOfSize:16];
+    self.contentLabel.text = contString;
     _contentSize = [contString boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
     NSLog(@"_contentLabel.text = %@",_contentLabel.text);
     NSLog(@"_contentSize = %li",(long)_contentSize);
@@ -282,6 +277,7 @@
     
    // NSLog(@"likes = %@",[message valueForKey:@"likes"]);
     NSLog(@"self.avatarImage.image = %@",self.avatarImage.image);
+    [self.lock unlock];
 
 }
 
@@ -295,12 +291,14 @@
 
 - (void)changHeight:(NSNotification *)noti
 {
-    _reply_toSize = _flodReply_toSize;
+    //_reply_toSize = _flodReply_toSize;
 }
 
 - (CGFloat)heightForModel:(ZRBCommentsJSONModel *)message
 {
+    [self.lock lock];
     [self setMessage:message];
+    
     [self layoutIfNeeded];
 #pragma mark   为什么这里加上70 就OK 了？？？？ 不加70 + 1 的话评论就会隐藏一部分！！！！！
     
@@ -309,11 +307,38 @@
     
     //在这里通过数组把所有_reply_toSize 加入
     
-    CGFloat allHeight = _contentSize + _timeSize + _nameSize + _reply_toSize + 20;
+    CGFloat allHeight = _contentSize + _timeSize + _nameSize + _reply_toSize + 30;
+    NSLog(@"allHeight = %li",(long)allHeight);
+    [self.lock unlock];
     return allHeight;
     
     return cellHeight;
 }
+
+//问学姐不加时间标签 的约束 下面高了一节怎么办
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 - (void)awakeFromNib {
     [super awakeFromNib];

@@ -19,6 +19,8 @@
 
 @property (nonatomic, assign) NSInteger didCaculateRowAtIndexInteger;
 
+@property (nonatomic, strong) NSLock * lock;
+
 @end
 
 @implementation ZRBCommentViewController
@@ -77,6 +79,7 @@
     [_selectButton addTarget:self action:@selector(spreadCellSection:) forControlEvents:UIControlEventTouchUpInside];
     _flag = 0;
     _contentOffSetYHeight = 0;
+    _refreshFlag = 0;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -86,18 +89,35 @@
         return 1;
     }
     if ( section == 0 && _longCommentsNumInteger != 0 ){
+        if ( _longCommentsNumInteger > 12 ){
+            _longCommentsNumInteger = 12;
+        }
         return _longCommentsNumInteger;
     }
     //第一组存在 第二组数量总是1 Row 第一组那种存在 第一组数量为1；
-    if ( section == 1 ){
-        if ( _realShortCommentsInteger > 20 ){
-            _realShortCommentsInteger = 19;
-            return 19;
+    if ( section == 1 && _refreshFlag == 0 ){
+        return 0;
+    }
+    
+    if ( section == 1 && _refreshFlag != 0 && _realShortCommentsInteger != 0 ){
+        if ( _realShortCommentsInteger > 14 ){
+            _realShortCommentsInteger = 13;
+            return _realShortCommentsInteger;
         }
         return _realShortCommentsInteger;
     }
         return 1;
 }
+
+//问题： 点击有的cell 在点击短评论会出现下拉到最下方 出现 13shortComments
+
+//2.展开这个按钮赋值被复用 在不需要的地方被粘上
+
+
+
+
+
+
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
@@ -134,33 +154,35 @@
     
     NSIndexSet * indexSet = [[NSIndexSet alloc] initWithIndex:_nowSection];
     if ( btn.selected ){
+        _refreshFlag++;
         _flag++;
     }else{
+        _refreshFlag--;
         _flag--;
     }
     NSInteger i = 0;
     NSLog(@"_flag = %li",_flag);
     if ( _flag == 1 ){
         if ( _contentOffSetYHeight != 0 ){
-    _commentView.tableView.contentOffset = CGPointMake(0, _contentOffSetYHeight);
+    _commentView.tableView.contentOffset = CGPointMake(0, _contentOffSetYHeight-5);
+//            }
+            
         }else{
             _commentView.tableView.contentOffset = CGPointMake(0, 245);
         }
-        NSLog(@"_contentOffSetYHeight = %f",_contentOffSetYHeight);
+        NSLog(@"Spread里面_contentOffSetYHeight = %f",_contentOffSetYHeight);
     }else{
         if ( _contentOffSetYHeight != 0 ){
-        _commentView.tableView.contentOffset = CGPointMake(0, (_contentOffSetYHeight)*(-1));
+        _commentView.tableView.contentOffset = CGPointMake(0, (_contentOffSetYHeight-5)*(-1));
+            
         }else{
             _commentView.tableView.contentOffset = CGPointMake(0, -245);
         }
     }
-//    [_commentView.tableView mas_makeConstraints:^(MASConstraintMaker *make) {
-//        make.top.mas_equalTo(self.view.mas_top).offset(-50);
-//        make.width.mas_equalTo(self.view.mas_width);
-//        make.height.mas_equalTo(self.view.mas_height);
-//    }];
+    
+    //[_commentView.tableView beginUpdates];
     [_commentView.tableView reloadSections:indexSet withRowAnimation:UITableViewRowAnimationFade];
-//    _commentView.tableView.contentOffset
+    //[_commentView.tableView endUpdates];
 //    通过协议传值把头视图弄到顶部
 }
 
@@ -180,13 +202,17 @@
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+//    if ( _longCommentsNumInteger > 15 )
     if ( indexPath.section == 0 && _longCommentsNumInteger != 0 ){
         if ( [self.allDataMutArray isKindOfClass:[NSArray class]] && self.allDataMutArray.count > 0 ){
     CGFloat cellHeight = [self.tempCell heightForModel:_allDataMutArray[0][indexPath.row]];
             if ( _didCaculateRowAtIndexInteger < _longCommentsNumInteger ){
                 _contentOffSetYHeight += cellHeight;
                 _didCaculateRowAtIndexInteger++;
+                NSLog(@"_contentOffSetYHeight = %.2f",_contentOffSetYHeight);
+                NSLog(@"_didCaculateRowAtIndexInteger = %li",_didCaculateRowAtIndexInteger);
             }
+            NSLog(@"_didCaculateRowAtIndexInteger = %li",_didCaculateRowAtIndexInteger);
             //这里可以计算第一组总高度
     return cellHeight;
         }else{
@@ -197,6 +223,12 @@
         if ( [self.allShortDataMutArray isKindOfClass:[NSArray class]] && self.allShortDataMutArray.count > 0 ){
             NSLog(@"这时的indexPath.row = %li",indexPath.row);
             CGFloat cellHeight = [self.shortTempCell heightForModel:_allShortDataMutArray[0][indexPath.row]];
+            
+            NSLog(@"indexPath.row = %li",indexPath.row);
+            NSString * shortStr = [NSString stringWithFormat:@"%@",_allShortDataMutArray[0][indexPath.row]];
+            NSString * shortLongStr = [NSString stringWithFormat:@"%@",_allShortDataMutArray[0]];
+            NSString * shortshortStr = [NSString stringWithFormat:@"%@",_allShortDataMutArray[0][0]];
+            NSLog(@"_allShortDataMutArray[0][indexPath.row]] = %@",[NSString stringWithFormat:@"%@",shortStr]);
             return cellHeight;
         }
     }
@@ -207,8 +239,8 @@
 {
     ZRBCommentsTableViewCell * cell = nil;
     ZRBCommentsTableViewCell * shortCell = nil;
-    cell = [tableView dequeueReusableCellWithIdentifier:@"commentCell"];
-    shortCell = [tableView dequeueReusableCellWithIdentifier:@"shortCommentCell"];
+    cell = [self.commentView.tableView dequeueReusableCellWithIdentifier:@"commentCell"];
+    shortCell = [self.commentView.tableView dequeueReusableCellWithIdentifier:@"shortCommentCell"];
     if ( cell == nil ){
         cell = [[ZRBCommentsTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"commentCell"];
     }
@@ -234,7 +266,7 @@
         return cell;
     }
     
-    if ( indexPath.section == 1 && _shortCommentsNumInteger != 0 ){
+    if ( indexPath.section == 1 && _shortCommentsNumInteger != 0 && _refreshFlag != 0 ){
         if ( [self.allShortDataMutArray isKindOfClass:[NSArray class]] && self.allShortDataMutArray.count > 0 ){
             NSArray * array = [NSArray arrayWithObject:_allShortDataMutArray[0]];
             NSLog(@"array.count = %li",array.count);

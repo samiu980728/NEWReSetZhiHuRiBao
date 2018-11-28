@@ -30,7 +30,9 @@
     // Do any additional setup after loading the view.
     _realRideInteger = 0;
     _didCaculateRowAtIndexInteger = 0;
+    _numOfLinesInteger = 0;
     
+    _cellHeightMutArray = [[NSMutableArray alloc] init];
     _authorMutArray = [[NSMutableArray alloc] init];
     _contentMMutArray = [[NSMutableArray alloc] init];
     _avatorMutArray = [[NSMutableArray alloc] init];
@@ -102,6 +104,7 @@
     if ( section == 1 && _refreshFlag != 0 && _realShortCommentsInteger != 0 ){
         if ( _realShortCommentsInteger > 14 ){
             _realShortCommentsInteger = 13;
+            NSLog(@"_shortCommentsNumInteger = %li",_shortCommentsNumInteger);
             return _realShortCommentsInteger;
         }
         return _realShortCommentsInteger;
@@ -112,13 +115,6 @@
 //问题： 点击有的cell 在点击短评论会出现下拉到最下方 出现 13shortComments
 
 //2.展开这个按钮赋值被复用 在不需要的地方被粘上
-
-
-
-
-
-
-
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
     NSLog(@"_realShortCommentsInteger = %li",_realShortCommentsInteger);
@@ -214,10 +210,12 @@
             }
             NSLog(@"_didCaculateRowAtIndexInteger = %li",_didCaculateRowAtIndexInteger);
             //这里可以计算第一组总高度
+            //
     return cellHeight;
         }else{
             return 300;
         }
+        
     }
     else if (indexPath.section == 1 && _shortCommentsNumInteger != 0 ){
         if ( [self.allShortDataMutArray isKindOfClass:[NSArray class]] && self.allShortDataMutArray.count > 0 ){
@@ -229,6 +227,8 @@
             NSString * shortLongStr = [NSString stringWithFormat:@"%@",_allShortDataMutArray[0]];
             NSString * shortshortStr = [NSString stringWithFormat:@"%@",_allShortDataMutArray[0][0]];
             NSLog(@"_allShortDataMutArray[0][indexPath.row]] = %@",[NSString stringWithFormat:@"%@",shortStr]);
+            
+            //在这里保存一个数组 当数组.count == _shortCommentsNumInteger 时 以后就直接返回那个数组中的[indexPath.row]元素当做高度即可
             return cellHeight;
         }
     }
@@ -239,6 +239,7 @@
 {
     ZRBCommentsTableViewCell * cell = nil;
     ZRBCommentsTableViewCell * shortCell = nil;
+    
     cell = [self.commentView.tableView dequeueReusableCellWithIdentifier:@"commentCell"];
     shortCell = [self.commentView.tableView dequeueReusableCellWithIdentifier:@"shortCommentCell"];
     if ( cell == nil ){
@@ -247,10 +248,27 @@
     if ( shortCell == nil ){
         shortCell = [[ZRBCommentsTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"shortCommentCell"];
     }
+    
+//    cell.reply_toLabel.numberOfLines = _numOfLinesInteger;
+//    cell.timeLabel.numberOfLines = 0;
+//    cell.contentLabel.numberOfLines = 0;
+//    cell.nameLabel.numberOfLines = 0;
+//
+//    shortCell.reply_toLabel.numberOfLines = _numOfLinesInteger;
+//    shortCell.timeLabel.numberOfLines = 0;
+//    shortCell.contentLabel.numberOfLines = 0;
+//    shortCell.nameLabel.numberOfLines = 0;
+    
+    [cell.expandButton addTarget:self action:@selector(pressExpandButton:) forControlEvents:UIControlEventTouchUpInside];
     [shortCell.expandButton addTarget:self action:@selector(pressExpandButton:) forControlEvents:UIControlEventTouchUpInside];
     
     if ( indexPath.section == 0 && _longCommentsNumInteger != 0 ){
         if ( [self.allDataMutArray isKindOfClass:[NSArray class]] && self.allDataMutArray.count > 0 ){
+            if ( [_cellHeightMutArray[indexPath.row] floatValue] < 50 ){
+                cell.expandButton.hidden = YES;
+            }else{
+                cell.expandButton.hidden = NO;
+            }
     [cell setMessage:self.allDataMutArray[0][indexPath.row]];
         }
         return cell;
@@ -270,7 +288,11 @@
         if ( [self.allShortDataMutArray isKindOfClass:[NSArray class]] && self.allShortDataMutArray.count > 0 ){
             NSArray * array = [NSArray arrayWithObject:_allShortDataMutArray[0]];
             NSLog(@"array.count = %li",array.count);
-            
+            if ( [_cellHeightMutArray[indexPath.row] floatValue] < 50 ){
+                shortCell.expandButton.hidden = YES;
+            }else{
+                shortCell.expandButton.hidden = NO;
+            }
             //这里出问题 打印  _allShortDataMutArray
             [shortCell setMessage:_allShortDataMutArray[0][indexPath.row]];
         }
@@ -287,12 +309,10 @@
 
 - (void)pressExpandButton:(UIButton *)idSender
 {
-    
-    //因为复用机制 走heightRowAtIndex方法 很多次是很正常的
-    //应该把实际效果显示到屏幕上去显示
-    //明天再尝试
-    
-    
+    //问：   为什么点两次button才会选择一次？？？
+    //还有 该怎么弄才可以展开和收起？？？？
+    //昨天的那个： 通过改变numberOfRows = 2 = 0 方法
+    //可以尝试用协议传值给自定义cell界面 来给numberOfRows 实时传值
     
     
     
@@ -303,7 +323,20 @@
     
     
     
+    
+    
+    
+    
+    
+    
+    idSender.selected = !idSender.selected;
     ZRBCommentsTableViewCell * cell = (ZRBCommentsTableViewCell *)idSender.superview.superview;
+    if ( idSender.selected ){
+    _numOfLinesInteger = 2;
+    }else{
+        _numOfLinesInteger = 0;
+    }
+//    [cell.reply_toLabel sizeToFit];
     NSIndexPath * indexPath = [_commentView.tableView indexPathForCell:cell];
     NSLog(@"indexPath.section = %li",indexPath.section);
     NSLog(@"indexPath.row = %li",indexPath.row);
@@ -311,11 +344,13 @@
     //这里需要传参
     NSNotification * notification = [NSNotification notificationWithName:@"changHeightNoti" object:nil];
     [[NSNotificationCenter defaultCenter] postNotification:notification];
-    
+
     //[_commentView.tableView beginUpdates];
     NSIndexPath * nowIndexPath = [NSIndexPath indexPathForRow:indexPath.row inSection:indexPath.section];
     NSArray * reloadIndexPaths = [NSArray arrayWithObjects:nowIndexPath, nil];
     [_commentView.tableView reloadRowsAtIndexPaths:reloadIndexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
+    
+    
     //[_commentView.tableView endUpdates];
     
     //还缺一个 得改变当前的那个选中的cell 的 reply_size 不是最后一个
@@ -387,6 +422,27 @@
                // if ( ![replyStr isEqualToString:@"(\n    \"<null>\",\n    \"<null>\",\n    \"<null>\"\n)"]){
                     [_shortReplyMutArray addObject:[self.allcommentsJSONModel.comments valueForKey:@"reply_to"]];
                 //}
+                //在这里面计算高度 二维数组第二维的数量就是
+                for (int i = 0; i < additionalJSONModel.short_comments; i++) {
+                    CGFloat allReplySize = 0;
+                    CGFloat replyContentSize = 0;
+                    NSString * replyStr = [NSString stringWithFormat:@"%@",_shortReplyMutArray[0][i]];
+                    ZRBReplyToJSONModel * storyModel = _shortReplyMutArray[0][i];
+                    if ( ![replyStr isEqualToString:@"(null)"] ){
+                        NSString * authorStr = [NSString stringWithFormat:@"%@",[storyModel valueForKey:@"author"]];
+                        NSString * contentStr = [NSString stringWithFormat:@"%@",[storyModel valueForKey:@"content"]];
+                        NSString * allReplyStr = [NSString stringWithFormat:@"//%@: %@",authorStr,contentStr];
+                        CGFloat replySize = [allReplyStr boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
+                        [_cellHeightMutArray addObject:[NSNumber numberWithFloat:replySize]];
+                        
+                    }else{
+                    CGFloat replySize = [replyStr boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
+                    [_cellHeightMutArray addObject:[NSNumber numberWithFloat:replySize]];
+                    }
+                    
+                }
+                
+                //OKcell的高度已经存取完毕 接下来就在 cellForIndexRow里面使用即可
                 NSInteger i = 0;
                 for (i = 0; i < 0; i++) {
                     //if ( [[NSString stringWithFormat:@"%@",_shortReplyMutArray[i]] isEqualToString:@"<null>"] ){

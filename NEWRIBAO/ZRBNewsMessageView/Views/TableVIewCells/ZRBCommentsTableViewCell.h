@@ -28,4 +28,28 @@
 @property (nonatomic, strong) UIButton * expandButton;
 
 @property (nonatomic, strong) NSLock * lock;
+
+@property (nonatomic, assign) NSInteger ifSetMessageFlag;
+
+@property (nonatomic, strong) NSMutableArray * AlongHeigtCellMutArray;
+
+@property (nonatomic, strong) NSMutableArray * idMutArray;
+
+@property (nonatomic, strong) UILabel * timeLabel;
+
+@property (nonatomic, strong) UILabel * avatarImageLabel;
+
+@property (nonatomic, strong) UILabel * nameLabel;
+
+@property (nonatomic, strong) UILabel * contentLabel;
+
+@property (nonatomic, strong) UILabel * approvalLabel;
+
+@property (nonatomic, strong) UIButton * approvalButton;
+
+@property (nonatomic, strong) UIImageView * avatarImage;
+
+@property (nonatomic, strong) UILabel * reply_toLabel;
+
+@property (nonatomic, strong) UILabel * reply_toAuthorLabel;
 @end

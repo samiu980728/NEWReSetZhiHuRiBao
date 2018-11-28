@@ -75,6 +75,13 @@
 @property (nonatomic, assign) CGFloat contentOffSetYHeight;
 
 @property (nonatomic, assign) NSInteger refreshFlag;
+
+//缓存高度的数组
+@property (nonatomic, strong) NSMutableArray * cellHeightMutArray;
+
+//设置行数
+@property (nonatomic, assign) NSInteger numOfLinesInteger;
+
 - (void)fenethLongCommentsFromJSONModel;
 
 @end

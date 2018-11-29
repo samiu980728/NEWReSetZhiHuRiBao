@@ -28,10 +28,14 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    
+    
+    _buttonSelectedFlagInteger = 0;
     _realRideInteger = 0;
     _didCaculateRowAtIndexInteger = 0;
     _numOfLinesInteger = 0;
     
+    _longCellHeightMutArray = [[NSMutableArray alloc] init];
     _cellHeightMutArray = [[NSMutableArray alloc] init];
     _authorMutArray = [[NSMutableArray alloc] init];
     _contentMMutArray = [[NSMutableArray alloc] init];
@@ -66,8 +70,8 @@
     
     _commentView.tableView.delegate = self;
     _commentView.tableView.dataSource = self;
-    _commentView.tableView.estimatedRowHeight = 100;
-    _commentView.tableView.rowHeight = UITableViewAutomaticDimension;
+//    _commentView.tableView.estimatedRowHeight = 100;
+//    _commentView.tableView.rowHeight = UITableViewAutomaticDimension;
     [self.view addSubview:_commentView];
     [self.commentView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.view);
@@ -102,8 +106,8 @@
     }
     
     if ( section == 1 && _refreshFlag != 0 && _realShortCommentsInteger != 0 ){
-        if ( _realShortCommentsInteger > 14 ){
-            _realShortCommentsInteger = 13;
+        if ( _realShortCommentsInteger > 12 ){
+            _realShortCommentsInteger = 11;
             NSLog(@"_shortCommentsNumInteger = %li",_shortCommentsNumInteger);
             return _realShortCommentsInteger;
         }
@@ -130,9 +134,6 @@
     }
     else if (section == 1){
         _commentsHeaderView.commentsNumLabel.text = [NSString stringWithFormat:@"%li shortComments",_realShortCommentsInteger];
-//        UIButton * _selectButton = [UIButton buttonWithType:UIButtonTypeCustom];
-//        [_selectButton setImage:[UIImage imageNamed:@"9.png"] forState:UIControlStateNormal];
-//        [_selectButton addTarget:self action:@selector(spreadCellSection:) forControlEvents:UIControlEventTouchUpInside];
         [_commentsHeaderView addSubview:_selectButton];
         [_selectButton mas_makeConstraints:^(MASConstraintMaker *make) {
             make.left.equalTo(_commentsHeaderView.mas_right).offset(-80);
@@ -249,22 +250,14 @@
         shortCell = [[ZRBCommentsTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"shortCommentCell"];
     }
     
-//    cell.reply_toLabel.numberOfLines = _numOfLinesInteger;
-//    cell.timeLabel.numberOfLines = 0;
-//    cell.contentLabel.numberOfLines = 0;
-//    cell.nameLabel.numberOfLines = 0;
-//
-//    shortCell.reply_toLabel.numberOfLines = _numOfLinesInteger;
-//    shortCell.timeLabel.numberOfLines = 0;
-//    shortCell.contentLabel.numberOfLines = 0;
-//    shortCell.nameLabel.numberOfLines = 0;
-    
     [cell.expandButton addTarget:self action:@selector(pressExpandButton:) forControlEvents:UIControlEventTouchUpInside];
     [shortCell.expandButton addTarget:self action:@selector(pressExpandButton:) forControlEvents:UIControlEventTouchUpInside];
     
+    //给每个button加不同的tag
+    
     if ( indexPath.section == 0 && _longCommentsNumInteger != 0 ){
         if ( [self.allDataMutArray isKindOfClass:[NSArray class]] && self.allDataMutArray.count > 0 ){
-            if ( [_cellHeightMutArray[indexPath.row] floatValue] < 50 ){
+            if ( [_longCellHeightMutArray[indexPath.row] floatValue] < 50 ){
                 cell.expandButton.hidden = YES;
             }else{
                 cell.expandButton.hidden = NO;
@@ -307,54 +300,39 @@
     return shortCell;
 }
 
+
+//问题 为什么所有的button都走了这个方法?
 - (void)pressExpandButton:(UIButton *)idSender
 {
-    //问：   为什么点两次button才会选择一次？？？
-    //还有 该怎么弄才可以展开和收起？？？？
-    //昨天的那个： 通过改变numberOfRows = 2 = 0 方法
-    //可以尝试用协议传值给自定义cell界面 来给numberOfRows 实时传值
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    if ( _buttonSelectedFlagInteger == 0 ){
+        _buttonSelectedFlagInteger = 1;
+    }else{
+        _buttonSelectedFlagInteger = 0;
+    }
     
     idSender.selected = !idSender.selected;
     ZRBCommentsTableViewCell * cell = (ZRBCommentsTableViewCell *)idSender.superview.superview;
-    if ( idSender.selected ){
+    if ( _buttonSelectedFlagInteger == 1 ){
     _numOfLinesInteger = 2;
     }else{
         _numOfLinesInteger = 0;
     }
-//    [cell.reply_toLabel sizeToFit];
+
     NSIndexPath * indexPath = [_commentView.tableView indexPathForCell:cell];
     NSLog(@"indexPath.section = %li",indexPath.section);
     NSLog(@"indexPath.row = %li",indexPath.row);
     //在这里添加代理  在cell中执行代理
-    //这里需要传参
-    NSNotification * notification = [NSNotification notificationWithName:@"changHeightNoti" object:nil];
-    [[NSNotificationCenter defaultCenter] postNotification:notification];
 
     //[_commentView.tableView beginUpdates];
     NSIndexPath * nowIndexPath = [NSIndexPath indexPathForRow:indexPath.row inSection:indexPath.section];
+    
+    NSNotification * notification = [NSNotification notificationWithName:@"changHeightNoti" object:@{@"numberOfLines":[NSNumber numberWithInteger:_numOfLinesInteger]}];
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
+    
     NSArray * reloadIndexPaths = [NSArray arrayWithObjects:nowIndexPath, nil];
+    NSLog(@"reloadIndexPaths = %@",reloadIndexPaths);
     [_commentView.tableView reloadRowsAtIndexPaths:reloadIndexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
-    
-    
     //[_commentView.tableView endUpdates];
-    
-    //还缺一个 得改变当前的那个选中的cell 的 reply_size 不是最后一个
-
 }
 
 
@@ -387,6 +365,24 @@
                 NSLog(@"replyStr = %@",replyStr);
                 if ( ![replyStr isEqualToString:@"(\n    \"<null>\",\n    \"<null>\",\n    \"<null>\"\n)"]){
                 [_reply_toMutArray addObject:[longCommentsJSONModel.comments valueForKey:@"reply_to"]];
+                }
+                if ( additionalJSONModel.long_comments > 12 ){
+                    additionalJSONModel.long_comments = 12;
+                }
+                for (int i = 0; i < additionalJSONModel.long_comments; i++) {
+                    NSString * replyStr = [NSString stringWithFormat:@"%@",_reply_toMutArray[0][i]];
+                    ZRBReplyToJSONModel * storyModel = _reply_toMutArray[0][i];
+                    if ( ![replyStr isEqualToString:@"(null)"] ){
+                        NSString * authorStr = [NSString stringWithFormat:@"%@",[storyModel valueForKey:@"author"]];
+                        NSString * contentStr = [NSString stringWithFormat:@"%@",[storyModel valueForKey:@"content"]];
+                        NSString * allReplyStr = [NSString stringWithFormat:@"//%@: %@",authorStr,contentStr];
+                        CGFloat replySize = [allReplyStr boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
+                        [_longCellHeightMutArray addObject:[NSNumber numberWithFloat:replySize]];
+                        
+                    }else{
+                        CGFloat replySize = [replyStr boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
+                        [_longCellHeightMutArray addObject:[NSNumber numberWithFloat:replySize]];
+                    }
                 }
             } error:^(NSError *error) {
                 NSLog(@"网络请求出错： %@",error);
@@ -423,6 +419,10 @@
                     [_shortReplyMutArray addObject:[self.allcommentsJSONModel.comments valueForKey:@"reply_to"]];
                 //}
                 //在这里面计算高度 二维数组第二维的数量就是
+                if ( additionalJSONModel.short_comments > 12 ){
+                    additionalJSONModel.short_comments = 11;
+                }
+                NSLog(@"additionalJSONModel.short_comments = %li",additionalJSONModel.short_comments);
                 for (int i = 0; i < additionalJSONModel.short_comments; i++) {
                     CGFloat allReplySize = 0;
                     CGFloat replyContentSize = 0;

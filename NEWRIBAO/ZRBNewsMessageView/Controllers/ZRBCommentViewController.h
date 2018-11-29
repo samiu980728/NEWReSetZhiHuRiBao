@@ -10,8 +10,19 @@
 #import "ZRBCommentView.h"
 #import "ZRBCommentManager.h"
 #import "ZRBCommentsTableViewHeaderView.h"
+
+@protocol ZRBNumberOfLinesRefreshDelegate  <NSObject>
+
+- (void)fecthRefreshNewNumOfLines:(NSInteger)numberOfLines;
+
+@end
+
+
 @interface ZRBCommentViewController : UIViewController
 <UITableViewDataSource,UITableViewDelegate>
+
+@property (nonatomic, weak) id <ZRBNumberOfLinesRefreshDelegate> delegate;
+
 @property (nonatomic, strong) ZRBCommentView * commentView;
 
 @property (nonatomic, strong) NSString * secondResaveIdString;
@@ -81,6 +92,12 @@
 
 //设置行数
 @property (nonatomic, assign) NSInteger numOfLinesInteger;
+
+//展开与收起按钮的行数
+@property (nonatomic, assign) NSInteger buttonSelectedFlagInteger;
+
+//计算长评论的被回复者评论内容高度
+@property (nonatomic, strong) NSMutableArray * longCellHeightMutArray;
 
 - (void)fenethLongCommentsFromJSONModel;
 

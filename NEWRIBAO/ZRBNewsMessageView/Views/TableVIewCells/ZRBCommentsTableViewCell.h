@@ -10,6 +10,7 @@
 #import "ZRBLongCommentsJSONModel.h"
 @interface ZRBCommentsTableViewCell : UITableViewCell
 
+
 - (void)setMessage:(ZRBCommentsJSONModel *)message;
 
 - (CGFloat)heightForModel:(ZRBCommentsJSONModel *)message;
@@ -52,4 +53,6 @@
 @property (nonatomic, strong) UILabel * reply_toLabel;
 
 @property (nonatomic, strong) UILabel * reply_toAuthorLabel;
+
+@property (nonatomic, assign) NSInteger numOfLineSNumInt;
 @end

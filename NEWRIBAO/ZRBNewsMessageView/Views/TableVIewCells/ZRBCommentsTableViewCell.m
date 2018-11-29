@@ -19,6 +19,7 @@
 -(instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
 {
     if ( self == [super initWithStyle:style reuseIdentifier:reuseIdentifier] ){
+        _numOfLineSNumInt = 0;
         [self createUI];
         
     }
@@ -28,7 +29,6 @@
 - (void)createUI
 {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(changHeight:) name:@"changHeightNoti" object:nil];
-    
     self.idMutArray = [[NSMutableArray alloc] init];
     self.AlongHeigtCellMutArray = [[NSMutableArray alloc] init];
     self.reply_toAuthorLabel = [[UILabel alloc] init];
@@ -122,11 +122,30 @@
     }];
     //下一步  照片网络请求错误  看看到底咋回事
     _ifSetMessageFlag = 0;
-    
+  //  dispatch_async(dispatch_get_main_queue(), ^{
+    //});
+    NSInteger num = _reply_toLabel.numberOfLines;
+    NSLog(@"num = %li",num);
 }
+
+
+//还是 不行 在setMessage尝试打印numberOfLines 看看 通知传值传成功了没
+
+
+
+
+
 
 - (void)setMessage:(ZRBCommentsJSONModel *)message
 {
+    if ( _expandButton.selected ){
+        NSLog(@"asdas");
+    }
+    else if ( !_expandButton.selected ){
+    
+        NSLog(@"asd1232112");
+        
+    }
     //[self.lock lock];
     _contentSize = 0;
     _nameSize = 0;
@@ -137,8 +156,23 @@
     ZRBReplyToJSONModel * storyModel = [message valueForKey:@"reply_to"];
     NSString * replyContentStr = [NSString stringWithFormat:@"%@",[storyModel valueForKey:@"content"]];
     NSString * replyAuthorStr = [NSString stringWithFormat:@"%@",[storyModel valueForKey:@"author"]];
+    
+    replyContentStr = [replyContentStr stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    replyContentStr = [replyContentStr stringByReplacingOccurrencesOfString:@"\r" withString:@""];
+    replyContentStr = [replyContentStr stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+    
+    replyAuthorStr = [replyAuthorStr stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    replyAuthorStr = [replyAuthorStr stringByReplacingOccurrencesOfString:@"\r" withString:@""];
+    replyAuthorStr = [replyAuthorStr stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+    
+    
     NSString * allReplyStr = [[NSString alloc] init];
     NSString * contString = [NSString stringWithFormat:@"%@",[message valueForKey:@"content"]];
+    
+    contString = [contString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    contString = [contString stringByReplacingOccurrencesOfString:@"\r" withString:@""];
+    contString = [contString stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+    
     self.contentLabel.font = [UIFont systemFontOfSize:16];
     self.contentLabel.text = contString;
     _contentSize = [contString boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
@@ -159,6 +193,8 @@
         NSLog(@"allReplyStr = %@",allReplyStr);
         _reply_toSize = [allReplyStr boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
         CGFloat realReplySize = _reply_toSize;
+        NSInteger skt = _reply_toLabel.numberOfLines;
+        NSLog(@"skt = %li",_reply_toLabel.numberOfLines);
         NSLog(@"realReplySize = %.2f",realReplySize);
         
         if ( realReplySize > 50 ){
@@ -167,19 +203,15 @@
                 [_expandButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
                 [_expandButton setBackgroundColor:[UIColor yellowColor]];
                 _flodReply_toSize = _reply_toSize;
+//            if ( !_expandButton.selected ){
+//            _reply_toSize = 50;
+//            }
+            //另一个方法  直接改变 _reply_toSize
             }
         else if (realReplySize < 50){
             
         }
     }
-
-//    NSString * contString = [NSString stringWithFormat:@"%@",[message valueForKey:@"content"]];
-//    self.contentLabel.font = [UIFont systemFontOfSize:16];
-//    self.contentLabel.text = contString;
-//    _contentSize = [contString boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
-//    NSLog(@"_contentLabel.text = %@",_contentLabel.text);
-//    NSLog(@"_contentSize = %li",(long)_contentSize);
-    
     NSString * naStr = [NSString stringWithFormat:@"%@",[message valueForKey:@"author"]];
     _nameSize = [naStr boundingRectWithSize:CGSizeMake(80, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
     self.nameLabel.text = naStr;
@@ -225,20 +257,18 @@
     [self.approvalButton setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
     NSLog(@"self.avatarImage.image = %@",self.avatarImage.image);
     //[self.lock unlock];
-
 }
 
-- (void)pressExpandButton:(UIButton *)idSender
-{
-    //在这里面执行代理 注意还需要判断一下 某个值是否为0
-    [idSender setTitle:@"收起" forState:UIControlStateSelected];
-    _reply_toSize = _flodReply_toSize;
-    //然后再调用 heightForModel 方法 返回一个值 通过通知传值
+- (void)dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"changHeightNoti" object:nil];
 }
 
 - (void)changHeight:(NSNotification *)noti
 {
-    //_reply_toSize = _flodReply_toSize;
+    NSDictionary * dict = [noti object];
+    NSInteger numberOfLines = [[dict valueForKey:@"numberOfLines"] integerValue];
+    _numOfLineSNumInt = numberOfLines;
+    self.reply_toLabel.numberOfLines = numberOfLines;
 }
 
 - (CGFloat)heightForModel:(ZRBCommentsJSONModel *)message
@@ -247,7 +277,7 @@
     [self setMessage:message];
     [self layoutIfNeeded];
     
-    CGFloat cellHeight = [self.contentView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize].height + 100;
+    //CGFloat cellHeight = [self.contentView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize].height + 100;
     CGFloat allHeight = _contentSize + _timeSize + _nameSize + _reply_toSize + 30;
     
     NSLog(@"allHeight = %li",(long)allHeight);

@@ -43,6 +43,8 @@
         self.navigationController.interactivePopGestureRecognizer.delegate = nil;
     }
 
+    
+    
     _scrollView = [[UIScrollView alloc] initWithFrame:self.view.bounds];
     _scrollView.contentSize = CGSizeMake(0, 900);
     _scrollView.delegate = self;
@@ -281,9 +283,9 @@
     CGFloat offSet = scrollView.contentOffset.y;
     CGFloat alpha = (offSet - minAlphaOffset) / (maxAlphaOffect - minAlphaOffset);
     _barImageView.alpha = alpha;
-    NSLog(@"alpla = %.2f",alpha);
-    NSLog(@"offSet = %.2f",offSet);
-    NSLog(@"_MainView.mainMessageTableView.tableHeaderView.frame.size.height = %.2f",_headerFooterView.frame.size.height);
+    NSLog(@"scrollView.contentSize.height = %.2f",scrollView.contentSize.height);//实际内容高度
+    NSLog(@"scrollView.frame.size.height = %.2f",scrollView.frame.size.height);//屏幕可见高度
+    NSLog(@"scrollView.contentOffset.y = %.2f",scrollView.contentOffset.y);//内容偏移量
     if ( alpha > 1 ){
         self.navigationController.navigationBar.barTintColor = [UIColor colorWithRed:0.14f green:0.51f blue:0.85f alpha:1.00f];
         if ( offSet > _headerFooterView.frame.size.height ){
@@ -366,11 +368,23 @@
         secondMessageViewController.resaveIdString = [NSString stringWithFormat:@"%@",_idSelfMutArray[_indexPath.section+_indexPath.row]];
         NSInteger intEger = [secondMessageViewController.resaveIdString integerValue];
         NSLog(@"intEger = %li",intEger);
+        secondMessageViewController.idRequestMutArray = [NSMutableArray arrayWithArray:_idSelfMutArray];
     }else{
         secondMessageViewController.resaveIdString = [NSString stringWithFormat:@"%@",_idSelfMutArray[_indexPath.section][_indexPath.row]];
         requestJSONModel.idRequestStr = [NSString stringWithFormat:@"%@",_idSelfMutArray[_indexPath.section][_indexPath.row]];
+        secondMessageViewController.idRequestMutArray = [[NSMutableArray alloc] init];
+        for (int i = 0; i < _idSelfMutArray.count; i++) {
+        for (NSString * idStr in _idSelfMutArray[i]) {
+            [secondMessageViewController.idRequestMutArray addObject:idStr];
+        }
+        }
+        
+        NSLog(@"secondMessageViewController.idRequestMutArray.count = %li",secondMessageViewController.idRequestMutArray.count);
+//        for (int i = 0; i < _idSelfMutArray.count; i++) {
+//            NSArray * firstArray = [NSArray arrayWithArray:_idSelfMutArray[i]];
+//
+//        }
     }
-    
     NSLog(@"resaveIdString = %@",secondMessageViewController.resaveIdString);
     NSLog(@"requestJSONModel.idRequestStr = %@",requestJSONModel.idRequestStr);
     [self.navigationController pushViewController:secondMessageViewController animated:YES];

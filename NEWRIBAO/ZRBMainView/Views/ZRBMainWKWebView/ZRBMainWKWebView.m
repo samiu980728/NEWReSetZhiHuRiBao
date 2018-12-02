@@ -27,6 +27,11 @@
 - (void)Dicttongzhi:(NSNotification *)noti
 {
     dispatch_async(dispatch_get_main_queue(), ^{
+        
+//        _scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
+//        _scrollView.contentSize = CGSizeMake(0, 5000);
+//        _scrollView.delegate = self;
+        
         _webView = [[WKWebView alloc] initWithFrame:self.frame];
         _webView.UIDelegate = self;
         _webView.navigationDelegate = self;
@@ -36,167 +41,26 @@
         [wkWebView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:_shareUrlString]]];
         //[wkWebView loadHTMLString:_modelStr baseURL:nil];
         wkWebView.autoresizingMask = YES;
+        wkWebView.scrollView.delegate = self;
+        //[self addSubview:wkWebView];
+        //[self addSubview:_scrollView];
         [self addSubview:wkWebView];
+//        [_scrollView mas_makeConstraints:^(MASConstraintMaker *make) {
+//            make.edges.equalTo(self);
+//        }];
+        
         [wkWebView mas_makeConstraints:^(MASConstraintMaker *make) {
             make.edges.equalTo(self);
         }];
+        
+        
     });
 }
-        
-    
-        //底下的全部注释
-        
-        
-//    NSString *testUrlStr = [NSString stringWithFormat:@"https://news-at.zhihu.com/api/4/news/9699382"];
-//
-//    //拼接中文参数
-//    testUrlStr = [testUrlStr stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-//
-//    NSURL *testUrl = [NSURL URLWithString:testUrlStr];
-//    NSURLRequest *testRequest = [NSURLRequest requestWithURL:testUrl];
-//    NSURLSession *testSession = [NSURLSession sharedSession];
-//    NSURLSessionDataTask *testDataTask = [testSession dataTaskWithRequest:testRequest completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-//        if (error == nil) {
-//            _obj = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
-//            //使用NSJSONReadingMutableContainers，则返回的对象是可变的，NSMutableDictionary
-//
-//            //            NSLog(@"x--%@---", _obj);
-//            //TotalJSONModel *totalJSONModel = [[TotalJSONModel alloc] initWithDictionary:obj error:nil];
-//            //getNewsJSONModel * newsModel = [[getNewsJSONModel alloc] initWithDictionary:_obj error:nil];
-//
-//            _JSONModelMut = [[NSMutableArray alloc] init];
-//
-////            for (int i = 0; i < newsModel.section.count; i++) {
-////                sectionJSONModel * sectionModel = [[sectionJSONModel alloc] initWithDictionary:_obj[@"section"][i] error:nil];
-////                if ( sectionModel ){
-////                    //[JSONModelMut addObject:sectionModel];
-////                }
-////            }
-//
-//            // NSLog(@"newsModel.section.count == %li",newsModel.section.count);
-//
-//            //NSLog(@"obj === =  %@",_obj);
-//
-//            [_JSONModelMut addObject:_obj];
-//
-//            NSString * str = [NSString stringWithFormat:@"%@",_obj];
-//
-//            //NSLog(@"str ========  %@=======",str);
-//        }
-//
-//        NSDictionary * dict = [[NSDictionary alloc] initWithDictionary:_obj];
-//        NSNotification * dictNotification = [NSNotification notificationWithName:@"Dicttongzhi" object:nil userInfo:dict];
-//        [[NSNotificationCenter defaultCenter] postNotification:dictNotification];
-//
-//
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//
-//            _webView = [[WKWebView alloc] initWithFrame:self.frame];
-//            _webView.UIDelegate = self;
-//            _webView.navigationDelegate = self;
-//            [self addSubview:_webView];
-//
-//            [_webView mas_makeConstraints:^(MASConstraintMaker *make) {
-//                make.edges.equalTo(self);
-//            }];
-//
-//            //[_webView loadHTMLString:@"https://news-at.zhihu.com/api/4/news/3892357" baseURL:nil];
-//            //这是一个H5界面 不能直接打开 需要用一个方法
-//            NSURL * fileURL = [NSURL URLWithString:@"https://news-at.zhihu.com/api/4/news/9699382"];
-//
-//
-//
-//            // NSString * modelStr = [NSString ]
-//
-//            _modelStr = [NSString stringWithFormat:@"%@",[dict objectForKey:@"body"]];
-//
-//            NSLog(@"_modelStr === ==== %@",_modelStr);
-//
-//            //现在问题是  还是不能弄出来 web界面
-//            //还有 要添加手势  这个学一下
-//
-//
-//            [_webView loadHTMLString:_modelStr baseURL:nil];
-//
-//            //            [_webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://news-at.zhihu.com/api/4/news/3892357"]]];
-//
-//            NSLog(@"https://news-at.zhihu.com/api/4/news/9699382-----=-=-=-=-=-");
-//
-//            //            [_webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://www.baidu.com"]]];
-//
-//
-//
-//            //添加手势
-////
-//
-//        });
-//
-//
-//
-//        //hongyu改好了！~！！！！！！！！！！！！~~~~~~~~~
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//        //下一步 新建一个Controller 把 didselectcell里面的数据 在那个controller里面打开
-//
-//
-//    }];
-//
-//    [testDataTask resume];
-    
-//}
 
-
-
-
-//
-//- (void)Dicttongzhi:(NSNotification *)noti
-//{
-//    _webView = [[WKWebView alloc] init];
-//    _webView.UIDelegate = self;
-//    _webView.navigationDelegate = self;
-//    [self addSubview:_webView];
-//
-//    [_webView mas_makeConstraints:^(MASConstraintMaker *make) {
-//        make.edges.equalTo(self);
-//    }];
-//
-//
-//    //[_webView loadHTMLString:@"https://news-at.zhihu.com/api/4/news/3892357" baseURL:nil];
-//    //这是一个H5界面 不能直接打开 需要用一个方法
-//    NSURL * fileURL = [NSURL URLWithString:@"https://news-at.zhihu.com/api/4/news/3892357"];
-//
-//
-//
-//    // NSString * modelStr = [NSString ]
-//
-//    _modelStr = [NSString stringWithFormat:@"%@",_obj];
-//
-//    NSLog(@"_modelStr === ==== %@",_modelStr);
-//
-//    [_webView loadHTMLString:_modelStr baseURL:nil];
-//
-//    [_webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://news-at.zhihu.com/api/4/news/3892357"]]];
-//
-//    NSLog(@"https://news-at.zhihu.com/api/4/news/9699382-----=-=-=-=-=-");
-//    // [_webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://www.baidu.com"]]];
-//
-//}
-
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    NSLog(@"sdfads");
+}
 -(void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation
 {
     
@@ -272,53 +136,6 @@
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self name:@"Dicttongzhi" object:nil];
 }
-
-//- (void)webViewWebContentProcessDidTerminate:(WKWebView *)webView API_AVAILABLE(macosx(10.11), ios(9.0))
-//{
-//    [webView reload];
-//}
-//
-//- (void)webView:(WKWebView *)webView didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential * _Nullable credential))completionHandler {
-//    if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
-//        NSURLCredential *card = [[NSURLCredential alloc]initWithTrust:challenge.protectionSpace.serverTrust];
-//        completionHandler(NSURLSessionAuthChallengeUseCredential,card);
-//    }
-//}
-//
-//- (WKUserContentController *)userContentController
-//{
-//    if (!_userContentController) {
-//        _userContentController = [[WKUserContentController alloc] init];
-//        //交互关键代码
-//        [_userContentController addScriptMessageHandler:self name:@"webViewApp"];
-//    }
-//    return _userContentController;
-//}
-
-//- (void)webView:(WKWebView *)webView didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential * _Nullable))completionHandler
-//{
-//    if([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
-//
-//        if([challenge previousFailureCount] ==0){
-//
-//            NSURLCredential*credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
-//
-//            completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
-//
-//        }else{
-//
-//            completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge,nil);
-//
-//        }
-//    }else{
-//
-//        completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge,nil);
-//
-//    }
-//
-//}
-
-
 
 
 

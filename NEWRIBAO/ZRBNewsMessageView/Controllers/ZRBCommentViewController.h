@@ -99,6 +99,16 @@
 //计算长评论的被回复者评论内容高度
 @property (nonatomic, strong) NSMutableArray * longCellHeightMutArray;
 
+@property (nonatomic, strong) NSMutableArray * cellIfRefreshButtonMutArray;
+
+@property (nonatomic, assign) NSInteger oneSectionFlag;
+
+@property (nonatomic, assign) NSInteger twoSectionFlag;
+
+@property (nonatomic, strong) NSMutableArray * buttonSelectedFlagMutArray;
+
+@property (nonatomic, assign) NSInteger isRefreshInteger;
+
 - (void)fenethLongCommentsFromJSONModel;
 
 @end

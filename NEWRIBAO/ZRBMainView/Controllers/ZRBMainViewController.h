@@ -65,5 +65,6 @@
 @property (nonatomic, strong) UIImageView * barImageView;
 
 @property (nonatomic, copy) NSIndexPath * indexPath;
+
 @end
 

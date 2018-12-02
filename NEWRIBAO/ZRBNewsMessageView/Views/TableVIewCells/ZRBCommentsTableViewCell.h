@@ -10,6 +10,9 @@
 #import "ZRBLongCommentsJSONModel.h"
 @interface ZRBCommentsTableViewCell : UITableViewCell
 
+- (void)changeNumberOfLines;
+
+- (void)zeroToChangeNumberOfLines;
 
 - (void)setMessage:(ZRBCommentsJSONModel *)message;
 

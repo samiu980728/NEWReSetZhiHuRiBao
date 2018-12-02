@@ -22,7 +22,7 @@
 @end
 
 @interface SecondaryMessageViewController : UIViewController
-<UITableViewDelegate,UITableViewDataSource>
+<UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate>
 
 @property (nonatomic, strong) ZRBMainWKWebView * mainWebView;
 
@@ -45,5 +45,10 @@
 
 @property (nonatomic, strong) ZRBCommentViewController * commentVIewController;
 
+@property (nonatomic, strong) UIScrollView * scrollView;
+
+@property (nonatomic, strong) NSMutableArray * idRequestMutArray;
+
+@property (nonatomic, assign) BOOL refresh;
 - (void)fenethCommentsNumFromCommentManagerBlock;
 @end

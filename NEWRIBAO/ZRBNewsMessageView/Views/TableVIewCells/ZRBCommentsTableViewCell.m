@@ -87,7 +87,11 @@
         make.left.mas_equalTo(self.avatarImage.mas_right).offset(10);
         make.top.mas_equalTo(self.contentView.mas_top).offset(10);
         make.right.mas_equalTo(self.contentView.mas_right).offset(-150);
-        make.bottom.mas_equalTo(self.contentView.mas_top).offset(30);
+        //改了
+        make.height.mas_equalTo(20);
+        
+        //没改之前
+        //make.bottom.mas_equalTo(self.contentView.mas_top).offset(30);
     }];
     
     [self.contentLabel mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -128,14 +132,22 @@
     NSLog(@"num = %li",num);
 }
 
+- (void)changeNumberOfLines
+{
+//    if ( _expandButton.selected ){
+    _reply_toLabel.numberOfLines = 2;
+//    }
+//    else{
+//        _reply_toLabel.numberOfLines = 0;
+//    }
+}
+
+-(void)zeroToChangeNumberOfLines
+{
+    _reply_toLabel.numberOfLines = 0;
+}
 
 //还是 不行 在setMessage尝试打印numberOfLines 看看 通知传值传成功了没
-
-
-
-
-
-
 - (void)setMessage:(ZRBCommentsJSONModel *)message
 {
     if ( _expandButton.selected ){
@@ -147,6 +159,7 @@
         
     }
     //[self.lock lock];
+    NSLog(@"111_reply_toLabel.nu = %li",_reply_toLabel.numberOfLines);
     _contentSize = 0;
     _nameSize = 0;
     _timeSize = 0;
@@ -191,6 +204,27 @@
         self.reply_toLabel.font = [UIFont systemFontOfSize:16];
         self.reply_toLabel.text = allReplyStr;
         NSLog(@"allReplyStr = %@",allReplyStr);
+        
+        
+        
+        //知道问题出在哪了！！！！
+        //在这里必须在 attributes 中也要加_numOfLineSNumInt 这个条件！！！ 不然每次计算的都是这些文字的总高度
+        //按326 宽度来算！！！  所以有的时候计算numberOfLines的确对了 但是返回的高度还是原来的高度！！！
+        //笨办法: 因为此时已经能得到正确的numberOfLines 了
+        //所以判断 如果numOfLines == 2 那么直接返回一个固定的高度给_reply_toSize
+        //如果 numberOfLines == 0 那么再计算他的实际高度！！！！
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         _reply_toSize = [allReplyStr boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
         CGFloat realReplySize = _reply_toSize;
         NSInteger skt = _reply_toLabel.numberOfLines;
@@ -265,10 +299,10 @@
 
 - (void)changHeight:(NSNotification *)noti
 {
-    NSDictionary * dict = [noti object];
-    NSInteger numberOfLines = [[dict valueForKey:@"numberOfLines"] integerValue];
-    _numOfLineSNumInt = numberOfLines;
-    self.reply_toLabel.numberOfLines = numberOfLines;
+//    NSDictionary * dict = [noti object];
+//    NSInteger numberOfLines = [[dict valueForKey:@"numberOfLines"] integerValue];
+//    _numOfLineSNumInt = numberOfLines;
+//    self.reply_toLabel.numberOfLines = numberOfLines;
 }
 
 - (CGFloat)heightForModel:(ZRBCommentsJSONModel *)message
@@ -278,6 +312,9 @@
     [self layoutIfNeeded];
     
     //CGFloat cellHeight = [self.contentView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize].height + 100;
+    
+    
+    //这也有可能需要变
     CGFloat allHeight = _contentSize + _timeSize + _nameSize + _reply_toSize + 30;
     
     NSLog(@"allHeight = %li",(long)allHeight);

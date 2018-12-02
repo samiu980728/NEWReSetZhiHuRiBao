@@ -11,7 +11,7 @@
 @interface ZRBCoordinateMananger()
 
 @property (atomic, strong) NSMutableArray * dataMutArray;
-@property (nonatomic, copy) NSString * lateseDate;
+@property (nonatomic, copy) __block NSString * lateseDate;
 @property (nonatomic, strong) NSLock * lock;
 
 @end
@@ -104,7 +104,9 @@ static ZRBCoordinateMananger * manager = nil;
         
         [self requestDate:[NSString stringWithFormat:@"%ld",self.lateseDate.integerValue+1] Succeed:^(TotalJSONModel *mainMessageJSONModel) {
             [self.lock lock];
+            if ( mainMessageJSONModel != nil ){
             [self.dataMutArray addObject:mainMessageJSONModel];
+            }
             i++;
             if ( i == 5 ){
                 NSLog(@"_dataMutArray = %@",_dataMutArray);
@@ -116,10 +118,29 @@ static ZRBCoordinateMananger * manager = nil;
             [self.lock unlock];
         } ErrBlock:[errorBlock copy]];
         
-        
-            [self requestDate:[NSString stringWithFormat:@"%ld",self.lateseDate.integerValue - 1] Succeed:^(TotalJSONModel *mainMessageJSONModel) {
-                [self.lock lock];
+        [self requestDate:[NSString stringWithFormat:@"%ld",self.lateseDate.integerValue] Succeed:^(TotalJSONModel *mainMessageJSONModel) {
+            [self.lock lock];
+            //_lateseDate = @"20181130";
+            if ( mainMessageJSONModel != nil ){
                 [self.dataMutArray addObject:mainMessageJSONModel];
+            }
+            i++;
+            if ( i == 5 ){
+                NSLog(@"_dataMutArray = %@",_dataMutArray);
+                ZRBRequestJSONModel * requestJSONModel = [[ZRBRequestJSONModel alloc] init];
+                [requestJSONModel.idMutArray setArray:_requestMutArray];
+                [self dadadadSucceed:[succeedBlock copy]];
+            }
+            [self.lock unlock];
+        } ErrBlock:[errorBlock copy]];
+        
+        
+        
+        [self requestDate:[NSString stringWithFormat:@"%ld",self.lateseDate.integerValue - 1] Succeed:^(TotalJSONModel *mainMessageJSONModel) {
+                [self.lock lock];
+                if ( mainMessageJSONModel != nil ){
+                [_dataMutArray addObject:mainMessageJSONModel];
+                }
                 i++;
                 if ( i == 5 ){
                     NSLog(@"_dataMutArray = %@",_dataMutArray);
@@ -134,9 +155,9 @@ static ZRBCoordinateMananger * manager = nil;
         
             [self requestDate:[NSString stringWithFormat:@"%ld",self.lateseDate.integerValue - 2] Succeed:^(TotalJSONModel *mainMessageJSONModel) {
                 [self.lock lock];
-//                if ( mainMessageJSONModel ){
-                [self.dataMutArray addObject:mainMessageJSONModel];
-//                }
+                if ( mainMessageJSONModel != nil ){
+                [_dataMutArray addObject:mainMessageJSONModel];
+                }
                 i++;
                 if ( i == 5 ){
                     NSLog(@"_dataMutArray = %@",_dataMutArray);
@@ -150,7 +171,9 @@ static ZRBCoordinateMananger * manager = nil;
         
             [self requestDate:[NSString stringWithFormat:@"%ld",self.lateseDate.integerValue - 3] Succeed:^(TotalJSONModel *mainMessageJSONModel) {
                 [self.lock lock];
+                if ( mainMessageJSONModel != nil ){
                 [self.dataMutArray addObject:mainMessageJSONModel];
+                }
                 i++;
                 if ( i == 5 ){
                     NSLog(@"_dataMutArray = %@",_dataMutArray);
@@ -161,18 +184,21 @@ static ZRBCoordinateMananger * manager = nil;
                 [self.lock unlock];
             } ErrBlock:[errorBlock copy]];
   
-            [self requestDate:[NSString stringWithFormat:@"%ld",self.lateseDate.integerValue] Succeed:^(TotalJSONModel *mainMessageJSONModel) {
-                [self.lock lock];
-                [self.dataMutArray addObject:mainMessageJSONModel];
-                i++;
-                if ( i == 5 ){
-                    NSLog(@"_dataMutArray = %@",_dataMutArray);
-                    ZRBRequestJSONModel * requestJSONModel = [[ZRBRequestJSONModel alloc] init];
-                    [requestJSONModel.idMutArray setArray:_requestMutArray];
-                    [self dadadadSucceed:[succeedBlock copy]];
-                }
-                [self.lock unlock];
-            } ErrBlock:[errorBlock copy]];
+//            [self requestDate:[NSString stringWithFormat:@"%ld",self.lateseDate.integerValue] Succeed:^(TotalJSONModel *mainMessageJSONModel) {
+//                [self.lock lock];
+//                 _lateseDate = @"20181130";
+//                if ( mainMessageJSONModel != nil ){
+//                [self.dataMutArray addObject:mainMessageJSONModel];
+//                }
+//                i++;
+//                if ( i == 5 ){
+//                    NSLog(@"_dataMutArray = %@",_dataMutArray);
+//                    ZRBRequestJSONModel * requestJSONModel = [[ZRBRequestJSONModel alloc] init];
+//                    [requestJSONModel.idMutArray setArray:_requestMutArray];
+//                    [self dadadadSucceed:[succeedBlock copy]];
+//                }
+//                [self.lock unlock];
+//            } ErrBlock:[errorBlock copy]];
         
     }
 }

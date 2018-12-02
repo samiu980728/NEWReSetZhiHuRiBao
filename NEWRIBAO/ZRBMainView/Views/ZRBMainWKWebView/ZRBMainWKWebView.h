@@ -18,7 +18,7 @@
 
 @interface ZRBMainWKWebView : UIView
 
-<WKNavigationDelegate, WKUIDelegate, UIGestureRecognizerDelegate>
+<WKNavigationDelegate, WKUIDelegate, UIGestureRecognizerDelegate,UIScrollViewDelegate>
 
 
 
@@ -38,6 +38,8 @@
 @property (nonatomic, strong) UIPanGestureRecognizer * panGestureRecognizer;
 
 @property (nonatomic, copy) NSString * shareUrlString;
+
+@property (nonatomic, strong) UIScrollView * scrollView;
 - (void)createAndGetJSONModelWKWebView;
 
 - (void)recieveNotification;

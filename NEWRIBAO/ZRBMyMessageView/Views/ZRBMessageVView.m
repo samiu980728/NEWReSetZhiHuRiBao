@@ -7,8 +7,59 @@
 //
 
 #import "ZRBMessageVView.h"
-
+#import <Masonry.h>
 @implementation ZRBMessageVView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if ( self ){
+        self.presonImageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [self.presonImageButton mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.mas_equalTo(self.mas_left).offset(30);
+            make.top.mas_equalTo(self.mas_top).offset(30);
+            make.height.mas_equalTo(50);
+            make.width.mas_equalTo(self.mas_width);
+        }];
+        [self addSubview:self.presonImageButton];
+        
+        self.collectionButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [self.collectionButton mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.mas_equalTo(self.mas_left).offset(10);
+            //明天继续先弄自定义的这个Button的 Masonry布局
+            
+            
+            
+            
+            
+            
+            
+            
+            
+        }];
+        
+        
+        [self addSubview:self.collectionButton];
+        
+        self.newsButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        
+        [self addSubview:self.newsButton];
+        
+        self.setButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        
+        [self addSubview:self.setButton];
+        
+        self.mainNewsButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        
+        
+        [self addSubview:self.mainNewsButton];
+        
+    }
+    return self;
+}
+
+
+
 
 
 - (void)initView
@@ -70,20 +121,10 @@
 //接收通知后调用的方法
 - (void)changJSONModel:(NSNotification *)noti
 {
-    //_analyJSONModel = [[AnalysisJSONModel alloc] init];
-    
-    //不是应该在这里打印 NSLog(@"_JSONModelMut ====  ---- %@ ----",_JSONModelMut);吗？
-    
-    
-    
-    NSLog(@"analyJSONModel.JSONModelMut = %@",_analyJSONModel.JSONModelMut);
-    
     if ( [_analyJSONModel.JSONModelMut isKindOfClass:[NSArray class]] && _analyJSONModel.JSONModelMut.count > 0 ){
         _analyJSONMutArray = [NSMutableArray arrayWithArray:_analyJSONModel.JSONModelMut];
     }
     NSLog(@"_analyJSONMutArray = %@",_analyJSONMutArray);
-    
-    //在这里面进行cell 单元格的赋值
     _mainMessageTableView = [[UITableView alloc] init];
     
     _mainMessageTableView.delegate = self;

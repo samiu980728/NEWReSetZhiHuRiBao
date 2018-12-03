@@ -29,6 +29,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
+    _isHeaderViewRefreshInteger = 0;
     _isRefreshInteger = 0;
     _buttonSelectedFlagInteger = 0;
     _realRideInteger = 0;
@@ -122,17 +123,12 @@
     }
     //第一组存在 第二组数量总是1 Row 第一组那种存在 第一组数量为1；
     if ( section == 1 && _refreshFlag == 0 ){
-//        if ( _twoSectionFlag == 0 ){
-//            [_cellIfRefreshButtonMutArray addObject:@"456"];
-//            [_buttonSelectedFlagMutArray addObject:@"456"];
-//        }
         return 0;
     }
     
     if ( section == 1 && _refreshFlag != 0 && _realShortCommentsInteger != 0 ){
         if ( _realShortCommentsInteger > 12 ){
             _realShortCommentsInteger = 11;
-            //return _realShortCommentsInteger;
         }
         NSMutableArray * boolArray = [[NSMutableArray alloc] init];
         for (int i = 0; i < _realShortCommentsInteger; i++) {
@@ -153,10 +149,11 @@
 //2.展开这个按钮赋值被复用 在不需要的地方被粘上
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
+    //if ( !tableView.tableHeaderView ){
     NSLog(@"_realShortCommentsInteger = %li",_realShortCommentsInteger);
-    _commentsHeaderView = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"commentCell"];
+    _commentsHeaderView = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"commentsHeaderView"];
     if ( _commentsHeaderView == nil ){
-        _commentsHeaderView = [[ZRBCommentsTableViewHeaderView alloc] initWithReuseIdentifier:@"commentCell"];
+        _commentsHeaderView = [[ZRBCommentsTableViewHeaderView alloc] initWithReuseIdentifier:@"commentsHeaderView"];
     }
     if ( section == 0 && _longCommentsNumInteger != 0 ){
         _commentsHeaderView.commentsNumLabel.text = [NSString stringWithFormat:@"%li longComments",_realLongCommentsInteger];
@@ -165,6 +162,9 @@
         _commentsHeaderView.commentsNumLabel.text = @" ";
     }
     else if (section == 1){
+//        if ( _isHeaderViewRefreshInteger == 1 ){
+//            return _commentsHeaderView;
+//        }
         _commentsHeaderView.commentsNumLabel.text = [NSString stringWithFormat:@"%li shortComments",_realShortCommentsInteger];
         [_commentsHeaderView addSubview:_selectButton];
         [_selectButton mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -174,6 +174,8 @@
         }];
         _nowSection = section;
     }
+ //   }
+   // return nil;
     return _commentsHeaderView;
 }
 
@@ -194,8 +196,6 @@
     if ( _flag == 1 ){
         if ( _contentOffSetYHeight != 0 ){
     _commentView.tableView.contentOffset = CGPointMake(0, _contentOffSetYHeight-5);
-//            }
-            
         }else{
             _commentView.tableView.contentOffset = CGPointMake(0, 245);
         }
@@ -209,7 +209,6 @@
         }
     }
     
-    //[_commentView.tableView beginUpdates];
     [_commentView.tableView reloadSections:indexSet withRowAnimation:UITableViewRowAnimationFade];
     //[_commentView.tableView endUpdates];
 //    通过协议传值把头视图弄到顶部
@@ -217,6 +216,9 @@
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
 {
+//    if ( _isHeaderViewRefreshInteger == 1 ){
+//        return 0.1;
+//    }
     if ( section == 0 && _longCommentsNumInteger != 0 ){
         return 50;
     }
@@ -231,9 +233,36 @@
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    NSLog(@"5555indexPath.row = %li,indexPath.section = %li",indexPath.row,indexPath.section);
 //    if ( _longCommentsNumInteger > 15 )
     if ( indexPath.section == 0 && _longCommentsNumInteger != 0 ){
-        if ( [self.allDataMutArray isKindOfClass:[NSArray class]] && self.allDataMutArray.count > 0 ){
+        if ( [self.allDataMutArray isKindOfClass:[NSArray class]] && _allDataMutArray.count > 0 ){
+            if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 ){
+                                self.tempCell.expandButton.selected = YES;
+                                [self.tempCell changeNumberOfLines];
+            }
+            else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 )
+            {
+                self.tempCell.expandButton.selected = NO;
+                [self.tempCell zeroToChangeNumberOfLines];
+            }
+            
+//            if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
+//                self.tempCell.expandButton.selected = YES;
+//                [self.tempCell changeNumberOfLines];
+//            }
+//            else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 )
+//            {
+//                self.tempCell.expandButton.selected = NO;
+//                [self.tempCell zeroToChangeNumberOfLines];
+//            }
+            
+//            else{
+//            if ( [_buttonSelectedFlagMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
+//                                self.shortTempCell.expandButton.selected = NO;
+//                                [self.shortTempCell zeroToChangeNumberOfLines];
+//            }
+//            }
     CGFloat cellHeight = [self.tempCell heightForModel:_allDataMutArray[0][indexPath.row]];
             if ( _didCaculateRowAtIndexInteger < _longCommentsNumInteger ){
                 _contentOffSetYHeight += cellHeight;
@@ -242,8 +271,6 @@
                 NSLog(@"_didCaculateRowAtIndexInteger = %li",_didCaculateRowAtIndexInteger);
             }
             NSLog(@"_didCaculateRowAtIndexInteger = %li",_didCaculateRowAtIndexInteger);
-            //这里可以计算第一组总高度
-            //
     return cellHeight;
         }else{
             return 300;
@@ -253,12 +280,23 @@
     else if (indexPath.section == 1 && _shortCommentsNumInteger != 0 ){
         if ( [self.allShortDataMutArray isKindOfClass:[NSArray class]] && self.allShortDataMutArray.count > 0 ){
             NSLog(@"这时的indexPath.row = %li",indexPath.row);
+            
+            if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 ){
+                            NSLog(@"indexPath.row = %li,indexPath.section = %li",indexPath.row,indexPath.section);
+                            self.shortTempCell.expandButton.selected = YES;
+                            [self.shortTempCell changeNumberOfLines];
+                            _isRefreshInteger = 1;
+            }
+            else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 )
+            {
+                            self.shortTempCell.expandButton.selected = NO;
+                            [self.shortTempCell zeroToChangeNumberOfLines];
+            }
+            
             CGFloat cellHeight = [self.shortTempCell heightForModel:_allShortDataMutArray[0][indexPath.row]];
             NSLog(@"indexPath.row = %li",indexPath.row);
             NSString * shortStr = [NSString stringWithFormat:@"%@",_allShortDataMutArray[0][indexPath.row]];
             NSLog(@"_allShortDataMutArray[0][indexPath.row]] = %@",[NSString stringWithFormat:@"%@",shortStr]);
-            
-            //在这里保存一个数组 当数组.count == _shortCommentsNumInteger 时 以后就直接返回那个数组中的[indexPath.row]元素当做高度即可
             return cellHeight;
         }
     }
@@ -268,6 +306,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"1111");
+    NSLog(@"indexPath.row = %li,indexPath.section = %li",indexPath.row,indexPath.section);
     ZRBCommentsTableViewCell * cell = nil;
     ZRBCommentsTableViewCell * shortCell = nil;
     
@@ -287,17 +326,32 @@
     
     
     if ( indexPath.section == 0 && _longCommentsNumInteger != 0 ){
-        if ( _refreshFlag != 0 ){
-        if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
+        if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 ){
             cell.expandButton.selected = YES;
             [cell changeNumberOfLines];
-        }else{
-            if ( [_buttonSelectedFlagMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
-                cell.expandButton.selected = NO;
-                [cell zeroToChangeNumberOfLines];
-            }
         }
+        else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 )
+        {
+            cell.expandButton.selected = NO;
+            [cell zeroToChangeNumberOfLines];
         }
+        
+//        if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
+//            cell.expandButton.selected = YES;
+//            [cell changeNumberOfLines];
+//        }
+//        else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 )
+//        {
+//            cell.expandButton.selected = NO;
+//            [cell zeroToChangeNumberOfLines];
+//        }
+//        else{
+//            if ( [_buttonSelectedFlagMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
+//                cell.expandButton.selected = NO;
+//                [cell zeroToChangeNumberOfLines];
+//            }
+//     /   }
+        //思路：  看看为啥
         NSInteger q = 0;
         if ( [self.allDataMutArray isKindOfClass:[NSArray class]] && self.allDataMutArray.count > 0 ){
             if ( [_longCellHeightMutArray[indexPath.row] floatValue] < 50 ){
@@ -321,7 +375,7 @@
     }
     
     if ( indexPath.section == 1 && _shortCommentsNumInteger != 0 && _refreshFlag != 0 ){
-        if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
+        if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 ){
             NSLog(@"indexPath.row = %li,indexPath.section = %li",indexPath.row,indexPath.section);
             shortCell.expandButton.selected = YES;
             [shortCell changeNumberOfLines];
@@ -330,7 +384,7 @@
             _isRefreshInteger = 1;
             //_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] = [NSNumber numberWithInteger:0];
         }
-        else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 )
+        else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 )
         {
             //防止刚进入评论页面下面的语句就执行
             //if ( [_buttonSelectedFlagMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
@@ -348,7 +402,6 @@
             }else{
                 shortCell.expandButton.hidden = NO;
             }
-            //这里出问题 打印  _allShortDataMutArray
             [shortCell setMessage:_allShortDataMutArray[0][indexPath.row]];
         }
         NSInteger j = 0;
@@ -366,13 +419,8 @@
 //问题 为什么所有的button都走了这个方法?
 - (void)pressExpandButton:(UIButton *)idSender
 {
-//    if ( _buttonSelectedFlagInteger == 0 ){
-//        _buttonSelectedFlagInteger = 1;
-//    }else{
-//        _buttonSelectedFlagInteger = 0;
-//    }
-    
-//    idSender.selected = !idSender.selected;
+    //刷新的时候 头视图也会被刷新
+    _isHeaderViewRefreshInteger = 1;
     ZRBCommentsTableViewCell * cell = (ZRBCommentsTableViewCell *)idSender.superview.superview;
     if ( _buttonSelectedFlagInteger == 1 ){
         //_numOfLinesInteger = 2;
@@ -441,9 +489,9 @@
                 replyJSONModel = [longCommentsJSONModel.comments valueForKey:@"reply_to"];
                 NSString * replyStr = [NSString stringWithFormat:@"%@",replyJSONModel];
                 NSLog(@"replyStr = %@",replyStr);
-                if ( ![replyStr isEqualToString:@"(\n    \"<null>\",\n    \"<null>\",\n    \"<null>\"\n)"]){
+                //if ( ![replyStr isEqualToString:@"(\n    \"<null>\",\n    \"<null>\",\n    \"<null>\"\n)"]){
                 [_reply_toMutArray addObject:[longCommentsJSONModel.comments valueForKey:@"reply_to"]];
-                }
+               // }
                 if ( additionalJSONModel.long_comments > 12 ){
                     additionalJSONModel.long_comments = 12;
                 }

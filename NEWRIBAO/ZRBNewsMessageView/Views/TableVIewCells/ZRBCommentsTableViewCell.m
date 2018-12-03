@@ -54,7 +54,6 @@
     
     self.timeLabel.preferredMaxLayoutWidth = [UIScreen mainScreen].bounds.size.width ;
     self.nameLabel.preferredMaxLayoutWidth = 60;
-//    self.contentLabel.preferredMaxLayoutWidth = [UIScreen mainScreen].bounds.size.width ;
     
     [self.timeLabel sizeToFit];
     [self.nameLabel sizeToFit];
@@ -124,10 +123,7 @@
         make.top.mas_equalTo(self.contentView.mas_top);
         make.bottom.mas_equalTo(self.contentView.mas_top).offset(30);
     }];
-    //下一步  照片网络请求错误  看看到底咋回事
     _ifSetMessageFlag = 0;
-  //  dispatch_async(dispatch_get_main_queue(), ^{
-    //});
     NSInteger num = _reply_toLabel.numberOfLines;
     NSLog(@"num = %li",num);
 }
@@ -136,15 +132,18 @@
 {
 //    if ( _expandButton.selected ){
     _reply_toLabel.numberOfLines = 2;
+    _expandButton.selected = YES;
 //    }
 //    else{
 //        _reply_toLabel.numberOfLines = 0;
 //    }
 }
 
+// 转0
 -(void)zeroToChangeNumberOfLines
 {
     _reply_toLabel.numberOfLines = 0;
+    _expandButton.selected = NO;
 }
 
 //还是 不行 在setMessage尝试打印numberOfLines 看看 通知传值传成功了没
@@ -163,7 +162,7 @@
     _contentSize = 0;
     _nameSize = 0;
     _timeSize = 0;
-    _reply_toSize = 0;
+    _reply_toSize = 1;
     _flodReply_toSize = 0;
     self.reply_toLabel.text = @"";
     ZRBReplyToJSONModel * storyModel = [message valueForKey:@"reply_to"];
@@ -180,6 +179,7 @@
     
     
     NSString * allReplyStr = [[NSString alloc] init];
+    allReplyStr = @"";
     NSString * contString = [NSString stringWithFormat:@"%@",[message valueForKey:@"content"]];
     
     contString = [contString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
@@ -204,48 +204,79 @@
         self.reply_toLabel.font = [UIFont systemFontOfSize:16];
         self.reply_toLabel.text = allReplyStr;
         NSLog(@"allReplyStr = %@",allReplyStr);
-        
-        
-        
-        //知道问题出在哪了！！！！
-        //在这里必须在 attributes 中也要加_numOfLineSNumInt 这个条件！！！ 不然每次计算的都是这些文字的总高度
-        //按326 宽度来算！！！  所以有的时候计算numberOfLines的确对了 但是返回的高度还是原来的高度！！！
-        //笨办法: 因为此时已经能得到正确的numberOfLines 了
-        //所以判断 如果numOfLines == 2 那么直接返回一个固定的高度给_reply_toSize
-        //如果 numberOfLines == 0 那么再计算他的实际高度！！！！
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+       
+        if ( _reply_toLabel.numberOfLines == 2 ){
+            NSString * str = [NSString stringWithFormat:@"好好学习,天天向上"];
+            _reply_toSize = [str boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
+            _reply_toSize = _reply_toSize * 2;
+        }
+        else if (_reply_toLabel.numberOfLines == 0){
         _reply_toSize = [allReplyStr boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
+        }
+        CGFloat realReplyTextHeight = [allReplyStr boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
         CGFloat realReplySize = _reply_toSize;
         NSInteger skt = _reply_toLabel.numberOfLines;
         NSLog(@"skt = %li",_reply_toLabel.numberOfLines);
         NSLog(@"realReplySize = %.2f",realReplySize);
         
-        if ( realReplySize > 50 ){
-                NSLog(@"122realReplySize = %.2f",realReplySize);
-                [_expandButton setTitle:@"展开" forState:UIControlStateNormal];
-                [_expandButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-                [_expandButton setBackgroundColor:[UIColor yellowColor]];
-                _flodReply_toSize = _reply_toSize;
-//            if ( !_expandButton.selected ){
-//            _reply_toSize = 50;
-//            }
-            //另一个方法  直接改变 _reply_toSize
-            }
-        else if (realReplySize < 50){
-            
+        //一个概念是 numberOfLines 已经改变过了
+        //下面if 语句用的size 实际上就是 _reply_toSize 这个size 再不要胡动size了
+        if ( _reply_toSize < 50 ){
+                            [_expandButton setTitle:@"展开" forState:UIControlStateNormal];
+                            [_expandButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                            [_expandButton setBackgroundColor:[UIColor darkGrayColor]];
         }
+        else if ( _reply_toSize > 50 ){
+                        [_expandButton setTitle:@"收起" forState:UIControlStateNormal];
+                        [_expandButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                        [_expandButton setBackgroundColor:[UIColor darkGrayColor]];
+        }
+        
+        
+        
+        
+//        if ( realReplySize > 50 ){
+//            // lines = 2 的时候 不可能大于50
+//                NSLog(@"122realReplySize = %.2f",realReplySize);
+//                [_expandButton setTitle:@"展开" forState:UIControlStateNormal];
+//                [_expandButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//                [_expandButton setBackgroundColor:[UIColor darkGrayColor]];
+//
+//            //这里有问题  想要展开之后此时还没执行下面语句之前 高为152 realReplySize 也是大于 50 的 然而又给改成numberOfLines = 2了
+//            //同时 也变成两行的尺寸了
+//            _reply_toLabel.numberOfLines = 2;
+//            NSString * str = [NSString stringWithFormat:@"好好学习,天天向上"];
+//            _reply_toSize = [str boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
+//            _reply_toSize = _reply_toSize * 2;
+//
+//
+//            }
+//
+        //realReplySize < 50 && _reply_toLabel.numberOfLines == 0 这是真实
+//        else if (realReplySize < 50 && _reply_toLabel.numberOfLines == 2){
+//            if (realReplyTextHeight < 50){
+//                _reply_toLabel.numberOfLines = 0;
+//                _reply_toSize = [allReplyStr boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
+//            }
+//            else if ( realReplyTextHeight > 50 ){
+//            NSString * str = [NSString stringWithFormat:@"好好学习,天天向上"];
+//            _reply_toSize = [str boundingRectWithSize:CGSizeMake(326, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
+//            _reply_toSize = _reply_toSize * 2;
+//            [_expandButton setTitle:@"收起" forState:UIControlStateNormal];
+//            [_expandButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//            [_expandButton setBackgroundColor:[UIColor darkGrayColor]];
+//            }
+//        }
+        
+        //以上先注释
+        
+        
     }
+    
+    
+    
+    
+    
     NSString * naStr = [NSString stringWithFormat:@"%@",[message valueForKey:@"author"]];
     _nameSize = [naStr boundingRectWithSize:CGSizeMake(80, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height;
     self.nameLabel.text = naStr;
@@ -299,10 +330,6 @@
 
 - (void)changHeight:(NSNotification *)noti
 {
-//    NSDictionary * dict = [noti object];
-//    NSInteger numberOfLines = [[dict valueForKey:@"numberOfLines"] integerValue];
-//    _numOfLineSNumInt = numberOfLines;
-//    self.reply_toLabel.numberOfLines = numberOfLines;
 }
 
 - (CGFloat)heightForModel:(ZRBCommentsJSONModel *)message
@@ -313,9 +340,14 @@
     
     //CGFloat cellHeight = [self.contentView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize].height + 100;
     
-    
+    CGFloat allHeight = 0;
     //这也有可能需要变
-    CGFloat allHeight = _contentSize + _timeSize + _nameSize + _reply_toSize + 30;
+//    if ( _reply_toSize == 1 ){
+//        allHeight = _contentSize + _timeSize + _nameSize + _reply_toSize + 10;
+//    }else{
+    allHeight = _contentSize + _timeSize + _nameSize + _reply_toSize + 30;
+        
+  //  }
     
     NSLog(@"allHeight = %li",(long)allHeight);
     //[self.lock unlock];

@@ -109,6 +109,8 @@
 
 @property (nonatomic, assign) NSInteger isRefreshInteger;
 
+@property (nonatomic, assign) NSInteger isHeaderViewRefreshInteger;
+
 - (void)fenethLongCommentsFromJSONModel;
 
 @end

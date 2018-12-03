@@ -17,6 +17,16 @@ UITableViewDataSource>
 
 @property (nonatomic, strong) UIView * mainView;
 
+@property (nonatomic, strong) UIButton * collectionButton;
+
+@property (nonatomic, strong) UIButton * setButton;
+
+@property (nonatomic, strong) UIButton * newsButton;
+
+@property (nonatomic, strong) UIButton * presonImageButton;
+
+@property (nonatomic, strong) UIButton * mainNewsButton;
+
 @property (nonatomic, strong) UIButton * guideButton;
 
 @property (nonatomic, strong) UIButton * scrollButton;

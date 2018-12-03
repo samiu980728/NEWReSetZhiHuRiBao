@@ -19,6 +19,8 @@
     // Do any additional setup after loading the view.
     //创建一个通知 在通知里面传值
 //    _allLongCommentsInteger = 0;
+    
+    self.navigationController.delegate = self;
     NSLog(@"_resaveIdString = %@",_resaveIdString);
     
     
@@ -90,8 +92,6 @@
     
     [_mainWebView recieveNotification];
     
-    
-    
     [self.view addSubview:_scrollView];
     [_scrollView addSubview:_mainWebView];
     
@@ -123,6 +123,11 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             _tabBarView = [[ZRBTabBarView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height) andAllapproval:_allsApprovalInteger andComments:_allsCommentsInteger];
             [_tabBarView.commentNewsButton addTarget:self action:@selector(pressCommentViewButton:) forControlEvents:UIControlEventTouchUpInside];
+            [_tabBarView.goNextNewsViewButton addTarget:self action:@selector(pressGoNextViewsButton:) forControlEvents:UIControlEventTouchUpInside];
+            [_tabBarView.returnMainViewButton addTarget:self action:@selector(pressReturnMainViewButton:) forControlEvents:UIControlEventTouchUpInside];
+            [_tabBarView.giveApproveButton addTarget:self action:@selector(pressGiveApproveButton:) forControlEvents:UIControlEventTouchUpInside];
+            _tabBarView.giveApproveButton.adjustsImageWhenHighlighted = NO;
+            _tabBarView.giveApproveButton.selected = NO;
             
             [self.view addSubview:_tabBarView];
             [_tabBarView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -138,6 +143,66 @@
     } error:^(NSError *error) {
         NSLog(@"网络请求错误");
     }];
+}
+
+- (void)pressGiveApproveButton:(UIButton *)idSender
+{
+    //还要创建一个UIView  里面也是一个点赞图片 把那个_allsApprovalInteger 也加进去 然后
+    //做一个动画
+    
+    
+    //关键帧动画
+    //用动画完成放大的效果
+    CAKeyframeAnimation *animation=[CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
+    //需要给他设置一个关键帧的值,这个值就是变化过程
+    //values是一个数组
+    animation.values=@[@(0.5),@(1.0),@(1.5)];
+    //设置动画的时长
+    animation.duration=0.2;
+    //加到button上
+    [_tabBarView.giveApproveButton.layer addAnimation:animation forKey:@"animation"];
+    if ( _tabBarView.giveApproveButton.selected == NO ){
+        [_tabBarView.giveApproveButton setBackgroundImage:[UIImage imageNamed:@"11.png"] forState:UIControlStateNormal];
+        _allsApprovalInteger++;
+        _tabBarView.allCommentsLabel.text = [NSString stringWithFormat:@"%li",_allsApprovalInteger];
+    }else{
+        [_tabBarView.giveApproveButton setBackgroundImage:[UIImage imageNamed:@"5.png"] forState:UIControlStateNormal];
+        _allsApprovalInteger--;
+        _tabBarView.allCommentsLabel.text = [NSString stringWithFormat:@"%li",_allsApprovalInteger];
+    }
+    _tabBarView.giveApproveButton.selected = !_tabBarView.giveApproveButton.selected;
+   
+}
+
+- (void)pressReturnMainViewButton:(UIButton *)idSender
+{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)pressGoNextViewsButton:(UIButton *)idSender
+{
+    NSString * getRealIdString = [[NSString alloc] init];
+    for (int i = 0; i < _idRequestMutArray.count; i++) {
+        if ( [[NSString stringWithFormat:@"%@",_idRequestMutArray[i]] isEqualToString:_resaveIdString] ){
+            if ( _idRequestMutArray.count > i+1){
+                getRealIdString = [NSString stringWithFormat:@"%@",_idRequestMutArray[i+1]];
+                _resaveIdString = getRealIdString;
+            }
+            break;
+        }
+    }
+    NSMutableArray * lastIdArray = [NSMutableArray arrayWithArray:_idRequestMutArray];
+    SecondaryMessageViewController * secondMessageViewController = [[SecondaryMessageViewController alloc] init];
+    secondMessageViewController.resaveIdString = getRealIdString;
+    secondMessageViewController.idRequestMutArray = [NSMutableArray arrayWithArray:lastIdArray];
+    NSArray * viewArray = [NSArray arrayWithObject:self.view.subviews];
+    NSLog(@"viewArray.count = %li",viewArray.count);
+    CATransition * transition = [CATransition animation];
+    transition.type = kCATransitionPush;
+    transition.subtype = kCATransitionFromTop;
+    [self.navigationController.view.layer addAnimation:transition forKey:kCATransition];
+    [self.navigationController pushViewController:secondMessageViewController animated:NO];
+    [self removeFromParentViewController];
 }
 
 - (void)pressCommentViewButton:(UIButton *)sender
@@ -168,15 +233,6 @@
         NSInteger i = 0;
         if ( _refresh ){
             NSLog(@"到底不拉");
-            //得到此时的日期 然后再减一 通过-1的日期进行网络请求
-            
-             //得先获得 所有id 数组 然后再获得 所有 日期数组 再通过这两者的key和value值组成字典 通过与每次的idString进行对比
-            //获得对应idString的日期
-            
-            //用方法二： 如果滚到底部
-            //获得idString这个数组 先通过遍历这个数组找到与本次网页显示的id对应的在数组中的位置
-            //然后再新创建一个NSString类型的变量 来存储该位置下一个单元的String
-            //然后网络请求这个String
             NSString * getRealIdString = [[NSString alloc] init];
             for (int i = 0; i < _idRequestMutArray.count; i++) {
                 if ( [[NSString stringWithFormat:@"%@",_idRequestMutArray[i]] isEqualToString:_resaveIdString] ){
@@ -188,55 +244,33 @@
                 }
             }
             NSMutableArray * lastIdArray = [NSMutableArray arrayWithArray:_idRequestMutArray];
-            //问题二：是新创建一个WkwebView还是还是用ViewDidLoad里面初始化好的呢？
-            //1.先重新创建一个ViewController;
             SecondaryMessageViewController * secondMessageViewController = [[SecondaryMessageViewController alloc] init];
             secondMessageViewController.resaveIdString = getRealIdString;
             secondMessageViewController.idRequestMutArray = [NSMutableArray arrayWithArray:lastIdArray];
-            
-//            _resaveIdString = getRealIdString;
-//            _idRequestMutArray = [NSMutableArray arrayWithArray:lastIdArray];
-            //[self refreshController];
-#pragma mark //问题：   再次加载只能下拉加载一天的数据 再多就不行了 //因为 refresh = NO; 这个该怎么解决？   加个通知？？？
-//            [self bring]
             NSArray * viewArray = [NSArray arrayWithObject:self.view.subviews];
             NSLog(@"viewArray.count = %li",viewArray.count);
-            [self.navigationController pushViewController:secondMessageViewController animated:YES];
+            
+            CATransition * transition = [CATransition animation];
+            transition.type = kCATransitionPush;
+            transition.subtype = kCATransitionFromTop;
+            [self.navigationController.view.layer addAnimation:transition forKey:kCATransition];
+            [self.navigationController pushViewController:secondMessageViewController animated:NO];
             [self removeFromParentViewController];
-            
-            //完毕 接下来就是什么 返回界面 ！！！
-            //还有其他几个界面  还有返回上一层
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-//            [viewArray[0][0] removeFromSuperview];
-//            [viewArray[0][1] removeFromSuperview];
-            
-            //2.再用初始化好的
-            
-            
-            //如果是滚动到顶部
-            //先判断该id在数组中的位置是否在首位 如果不在首位则执行以下操作：
-            //获得idString这个数组 先通过遍历这个数组找到与本次网页显示的id对应的在数组中的位置
-            //然后再新创建一个NSString类型的变量 来存储该位置上个单元的String
-            //然后网络请求这个String
             _refresh = NO;
             NSLog(@"xxoo");
-            //[self refreshController];
         }
+    }
+}
+
+- (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController animationControllerForOperation:(UINavigationControllerOperation)operation fromViewController:(UIViewController *)fromVC toViewController:(UIViewController *)toVC
+{
+    //指定特殊ViewController之间的跳转动画
+    if (operation == UINavigationControllerOperationPush && [toVC isKindOfClass:[SecondaryMessageViewController class]]) {
+        return [[ZRBTransitionVerticalPush alloc]init];
+    }else if(operation == UINavigationControllerOperationPop && [fromVC isKindOfClass:[SecondaryMessageViewController class]]){
+        return [[ZRBTransitionVerticalPop alloc]init];
+    }else{
+        return nil;
     }
 }
 

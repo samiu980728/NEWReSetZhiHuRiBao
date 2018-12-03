@@ -14,6 +14,8 @@
 #import "ZRBCommentManager.h"
 #import "ZRBCoordinateMananger.h"
 #import "ZRBCommentViewController.h"
+#import "ZRBTransitionVerticalPush.h"
+#import "ZRBTransitionVerticalPop.h"
 //代理传值 COntroller层 传值给View层 网络中的信息
 @protocol ZRBGiveJSONModelMessageToViewDelegate <NSObject>
 
@@ -22,7 +24,7 @@
 @end
 
 @interface SecondaryMessageViewController : UIViewController
-<UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate>
+<UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate,UINavigationControllerDelegate>
 
 @property (nonatomic, strong) ZRBMainWKWebView * mainWebView;
 

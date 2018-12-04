@@ -7,7 +7,7 @@
 //
 
 #import "ZRBMyMessageViewController.h"
-
+#import <Masonry.h>
 @interface ZRBMyMessageViewController ()
 
 @end
@@ -17,10 +17,67 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    self.view.userInteractionEnabled = YES;
     [self.view setBackgroundColor:[UIColor darkGrayColor]];
+    
     _iNum = 0 ;
+//    ZRBMessageVView * messageView = [[ZRBMessageVView alloc] initWithFrame:CGRectMake(-320, 0, 320, [UIScreen mainScreen].bounds.size.height)];
+//    messageView.userInteractionEnabled = YES;
+//    messageView.backgroundColor = [UIColor whiteColor];
+//
+////    messageView.frame = CGRectMake(-320, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+//    //messageView.frame = CGRectMake(-320, 0, 320, [UIScreen mainScreen].bounds.size.height);
+////    messageView.mainNewsButton.backgroundColor = [UIColor blackColor];
+//
+//
+//#pragma mark 问题： 点击事件无法响应
+//    [messageView.mainNewsButton addTarget:self action:@selector(pressMainNewsButton:) forControlEvents:UIControlEventTouchUpInside];
+//    [messageView.collectionButton addTarget:self action:@selector(pressCollectionButton:) forControlEvents:UIControlEventTouchUpInside];
+//
+//    [self.view addSubview:messageView];
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+#pragma mark
+//    12.5 按钮那个问题待解决
+//    headerView复用问题待解决
+//    开始弄点赞动画相关
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     [self addMenuItems];
     self.view.frame = CGRectMake(-320, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+}
+
+- (void)pressCollectionButton:(UIButton *)idSender
+{
+    NSLog(@"22333333333");
+}
+
+- (void)pressMainNewsButton:(UIButton *)sender
+{
+    NSLog(@"22333333333");
+    //判断是否响应这个代理方法
+    if ([self.delegate respondsToSelector:@selector(menuContoller:didSelectitemAtIndex:)]){
+        [self.delegate menuContoller:self didSelectitemAtIndex:sender.tag-1];
+    }
 }
 
 - (void)addMenuItems
@@ -35,7 +92,7 @@
     [mainNewsButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.view);
         make.top.equalTo(self.view).offset(100);
-        make.width.mas_equalTo(180);
+        make.width.mas_equalTo(320);
         make.height.mas_equalTo(40);
     }];
 }
@@ -43,6 +100,7 @@
 //选中菜单
 - (void)menuItemselected:(UIButton *)sender
 {
+    NSLog(@"22333333333");
     //判断是否响应这个代理方法
     if ([self.delegate respondsToSelector:@selector(menuContoller:didSelectitemAtIndex:)]){
         [self.delegate menuContoller:self didSelectitemAtIndex:sender.tag-1];

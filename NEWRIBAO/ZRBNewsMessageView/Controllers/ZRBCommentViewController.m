@@ -322,9 +322,6 @@
     [cell.expandButton addTarget:self action:@selector(pressExpandButton:) forControlEvents:UIControlEventTouchUpInside];
     [shortCell.expandButton addTarget:self action:@selector(pressExpandButton:) forControlEvents:UIControlEventTouchUpInside];
     
-    //给每个cell加BOOL值  判断他自己的按钮是否被点击过
-    
-    
     if ( indexPath.section == 0 && _longCommentsNumInteger != 0 ){
         if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 ){
             cell.expandButton.selected = YES;
@@ -335,23 +332,6 @@
             cell.expandButton.selected = NO;
             [cell zeroToChangeNumberOfLines];
         }
-        
-//        if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
-//            cell.expandButton.selected = YES;
-//            [cell changeNumberOfLines];
-//        }
-//        else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 )
-//        {
-//            cell.expandButton.selected = NO;
-//            [cell zeroToChangeNumberOfLines];
-//        }
-//        else{
-//            if ( [_buttonSelectedFlagMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
-//                cell.expandButton.selected = NO;
-//                [cell zeroToChangeNumberOfLines];
-//            }
-//     /   }
-        //思路：  看看为啥
         NSInteger q = 0;
         if ( [self.allDataMutArray isKindOfClass:[NSArray class]] && self.allDataMutArray.count > 0 ){
             if ( [_longCellHeightMutArray[indexPath.row] floatValue] < 50 ){
@@ -379,18 +359,12 @@
             NSLog(@"indexPath.row = %li,indexPath.section = %li",indexPath.row,indexPath.section);
             shortCell.expandButton.selected = YES;
             [shortCell changeNumberOfLines];
-//            shortCell.expandButton.selected = YES;
-            //还需要一个数组 来判断对应的indexPath.row的按钮是否被点击
             _isRefreshInteger = 1;
-            //_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] = [NSNumber numberWithInteger:0];
         }
         else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 )
         {
-            //防止刚进入评论页面下面的语句就执行
-            //if ( [_buttonSelectedFlagMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
                 shortCell.expandButton.selected = NO;
                 [shortCell zeroToChangeNumberOfLines];
-            //}
         }
         
         NSInteger q = 0;

@@ -15,49 +15,105 @@
     self = [super initWithFrame:frame];
     if ( self ){
         self.presonImageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self.presonImageButton mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.left.mas_equalTo(self.mas_left).offset(30);
-            make.top.mas_equalTo(self.mas_top).offset(30);
-            make.height.mas_equalTo(50);
-            make.width.mas_equalTo(self.mas_width);
-        }];
         [self addSubview:self.presonImageButton];
         
         self.collectionButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self.collectionButton mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.left.mas_equalTo(self.mas_left).offset(10);
-            //明天继续先弄自定义的这个Button的 Masonry布局
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        }];
-        
-        
         [self addSubview:self.collectionButton];
         
         self.newsButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        
         [self addSubview:self.newsButton];
         
         self.setButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        
         [self addSubview:self.setButton];
-        
+
         self.mainNewsButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        
-        
         [self addSubview:self.mainNewsButton];
         
     }
     return self;
 }
 
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    
+    self.presonImageButton.imageView.layer.cornerRadius = self.presonImageButton.imageView.frame.size.width/2;
+    self.presonImageButton.layer.masksToBounds = YES;
+    [self.presonImageButton setImage:[UIImage imageNamed:@"16.png"] forState:UIControlStateNormal];
+    [self.presonImageButton setTitle:@"请登录" forState:UIControlStateNormal];
+    [self.presonImageButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    self.presonImageButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    //self.mainNewsButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    [self.presonImageButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 200)];
+    [self.presonImageButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 150)];
+    
+    [self.presonImageButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.mas_equalTo(self.mas_left).offset(30);
+        make.top.mas_equalTo(self.mas_top).offset(30);
+        make.height.mas_equalTo(50);
+        make.width.mas_equalTo(self.mas_width);
+    }];
+    
+    [self.collectionButton setImage:[UIImage imageNamed:@"12.png"] forState:UIControlStateNormal];
+    [self.collectionButton setTitle:@"收藏" forState:UIControlStateNormal];
+    [self.collectionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    self.collectionButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    //设置边距 距离顶部 上移下方文字的高度 距离右边 右移文字的宽度
+    
+    //原本的位置为：UIEdgeInsetsMake里面的四个参数表示距离上边界、左边界、下边界、右边界的距离，默认都为零，title／image在button的正中央
+    //还记得我们一开始设定的正负方向吗，(warning：left以右为正方向，right以左为正方向，但是可以帮助理解下面进行偏移时+ -距离，top向下为正和bottom向上为正，这个可以参照使用masonry进行约束设置判定方向)。
+    
+    //将image的偏移量距右边的距离减少了titleLabel的宽度 使其居中
+    //将image的偏移量距上边的距离减少了titleLabel的高度
+    [self.collectionButton setImageEdgeInsets:UIEdgeInsetsMake(-self.collectionButton.titleLabel.intrinsicContentSize.height, 0, 0, -self.collectionButton.titleLabel.intrinsicContentSize.width)];
+    
+    //上边距图片的高度加20
+    //将title的偏移量距上边的距离增加了image的高度+20
+    //距左边的距离减少了image的宽度
+    [self.collectionButton setTitleEdgeInsets:UIEdgeInsetsMake(self.collectionButton.currentImage.size.height+20, -self.collectionButton.currentImage.size.width, 0, 0)];
+   
+    //下一步 设置另外两个的图片加文字
+    
+    [self.newsButton setImage:[UIImage imageNamed:@"13.png"] forState:UIControlStateNormal];
+    [self.newsButton setTitle:@"消息" forState:UIControlStateNormal];
+    [self.newsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    self.newsButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    
+    [self.newsButton setImageEdgeInsets:UIEdgeInsetsMake(-self.newsButton.titleLabel.intrinsicContentSize.height, 0, 0, -self.newsButton.titleLabel.intrinsicContentSize.width)];
+    [self.newsButton setTitleEdgeInsets:UIEdgeInsetsMake(self.newsButton.currentImage.size.height+20, -self.newsButton.currentImage.size.width, 0, 0)];
+    
+    [self.setButton setImage:[UIImage imageNamed:@"14.png"] forState:UIControlStateNormal];
+    [self.setButton setTitle:@"设置" forState:UIControlStateNormal];
+    [self.setButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    self.setButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    
+    [self.setButton setImageEdgeInsets:UIEdgeInsetsMake(-self.setButton.titleLabel.intrinsicContentSize.height, 0, 0, -self.setButton.titleLabel.intrinsicContentSize.width)];
+    [self.setButton setTitleEdgeInsets:UIEdgeInsetsMake(self.setButton.currentImage.size.height+20, -self.setButton.currentImage.size.width, 0, 0)];
+    
+    [@[self.collectionButton,self.newsButton,self.setButton] mas_distributeViewsAlongAxis:MASAxisTypeHorizontal withFixedSpacing:20 leadSpacing:10 tailSpacing:10];
+    [@[self.collectionButton,self.newsButton,self.setButton] mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.mas_equalTo(self.presonImageButton.mas_bottom).offset(30);
+        make.width.mas_equalTo(50);
+        make.height.mas_equalTo(50);
+    }];
+    
+    [self.mainNewsButton setImage:[UIImage imageNamed:@"15.png"] forState:UIControlStateNormal];
+    [self.mainNewsButton setTitle:@"首页" forState:UIControlStateNormal];
+    [self.mainNewsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    self.mainNewsButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    //self.mainNewsButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    [self.mainNewsButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 200)];
+    [self.mainNewsButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 150)];
+//    self.mainNewsButton.imageView.userInteractionEnabled = NO;
+//    self.mainNewsButton.titleLabel.userInteractionEnabled = NO;
+    
+    [self.mainNewsButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.collectionButton.mas_bottom).offset(30);
+        make.width.mas_equalTo(self.mas_width);
+        make.height.mas_equalTo(100);
+        make.left.mas_equalTo(self.mas_left);
+    }];
+}
 
 
 

@@ -7,8 +7,19 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ZRBMessageVView.h"
+#import "ZRBMyMessageViewController.h"
+@protocol MMenuControllerDelegate <NSObject>
+
+- (void)mmenuContoller:(ZRBMyMessageViewController *)controller didSelectitemAtIndex:(NSUInteger)index;
+
+@end
 
 @interface ZRBContinerViewController : UIViewController
+
+@property (nonatomic, weak) id <MenuControllerDelegate> delegate;
+
+@property (nonatomic, strong) ZRBMyMessageViewController * messageViewController;
 
 - (void)addMenuViewController;
 - (void)addContentControllers;

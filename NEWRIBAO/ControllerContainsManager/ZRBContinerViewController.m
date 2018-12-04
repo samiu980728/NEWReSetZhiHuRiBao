@@ -35,6 +35,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    self.view.userInteractionEnabled = YES;
     [self addMenuViewController];
     [self addContentControllers];
 }
@@ -76,12 +77,28 @@
 - (void)addMenuViewController
 {
     //创建菜单控制器
-    [self setMyMessageViewController:[[ZRBMyMessageViewController alloc]init]];
+    ZRBMyMessageViewController * messageViewController = [[ZRBMyMessageViewController alloc] init];
+    
+    
+//    ZRBMessageVView * messageView = [[ZRBMessageVView alloc] initWithFrame:CGRectMake(-320, 0, 320, [UIScreen mainScreen].bounds.size.height)];
+//    messageView.userInteractionEnabled = YES;
+//    messageView.backgroundColor = [UIColor whiteColor];
+//    [messageView.mainNewsButton addTarget:self action:@selector(pressMainNewsButton:) forControlEvents:UIControlEventTouchUpInside];
+//    [messageView.collectionButton addTarget:self action:@selector(pressCollectionButton:) forControlEvents:UIControlEventTouchUpInside];
+//    [messageViewController.view addSubview:messageView];
+    
+    
+    [self setMyMessageViewController:messageViewController];
     [self addChildViewController:self.myMessageViewController];
     [self.view addSubview:self.myMessageViewController.view];
+    
+    //此为视图控制器
     self.myMessageViewController.delegate = self;
 }
-
+- (void)pressMainNewsButton:(UIButton *)sender
+{
+    NSLog(@"123123213");
+}
 //根据打开的状态判断动画的走向
 //侧边按钮的动画
 - (void)openCloseMenu

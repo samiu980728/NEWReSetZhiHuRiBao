@@ -171,7 +171,60 @@
         _tabBarView.allCommentsLabel.text = [NSString stringWithFormat:@"%li",_allsApprovalInteger];
     }
     _tabBarView.giveApproveButton.selected = !_tabBarView.giveApproveButton.selected;
-   
+    
+    //出现UIView
+    //然后 前一个数字得消失  还有一个弹跳/弹动的效果实现
+    //那么也就意味着label 的原来的那个数字也得需要一个动画来让它弹跳着消失
+    //在什么时候让原来的数字消失？？？
+    //我认为应该在dispatch_after 0.7之后 让label上的文字消失即可
+#pragma mark  看CALayer
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    CAKeyframeAnimation * pathAnimation = [CAKeyframeAnimation animationWithKeyPath:@"position"];
+    pathAnimation.calculationMode = kCAAnimationPaced;
+    pathAnimation.fillMode = kCAFillModeForwards;
+    pathAnimation.removedOnCompletion = NO;
+    pathAnimation.duration = 0.7;
+    pathAnimation.repeatCount = 0;
+    CGMutablePathRef curvedPath = CGPathCreateMutable();
+    CGPathMoveToPoint(curvedPath, NULL, 300, 660);
+    CGPathAddQuadCurveToPoint(curvedPath, NULL, 300, 650, 300, 640);
+    pathAnimation.path = curvedPath;
+    CGPathRelease(curvedPath);
+    UILabel * label = [[UILabel alloc] initWithFrame:CGRectMake(130, 620, 200, 40)];
+    label.textAlignment = NSTextAlignmentCenter;
+    label.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"2.png"]];
+    label.font = [UIFont systemFontOfSize:15];
+    label.text = @"156";
+   // [label sizeToFit];
+    [self.view addSubview:label];
+    
+    UILabel * numLabel = [[UILabel alloc] initWithFrame:CGRectMake(300, 576, 200, 40)];
+    //numLabel.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"2.png"]];
+    numLabel.font = [UIFont systemFontOfSize:15];
+    numLabel.text = @"157";
+    [self.view addSubview:numLabel];
+    [numLabel.layer addAnimation:pathAnimation forKey:@"moveTheSquare"];
+
+    dispatch_time_t time = dispatch_time(DISPATCH_TIME_NOW, (ino64_t)(2 * NSEC_PER_SEC));
+    dispatch_after(time, dispatch_get_main_queue(), ^{
+        [label removeFromSuperview];
+        [numLabel removeFromSuperview];
+    });
+    
 }
 
 - (void)pressReturnMainViewButton:(UIButton *)idSender

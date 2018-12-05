@@ -9,5 +9,8 @@
 #import <UIKit/UIKit.h>
 
 @interface ZRBApprovalAnimationView : UIView
+<CAAnimationDelegate>
+
+@property (nonatomic, strong) UILabel * approvalLabel;
 
 @end

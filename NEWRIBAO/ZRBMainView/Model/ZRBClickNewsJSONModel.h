@@ -10,4 +10,6 @@
 
 @interface ZRBClickNewsJSONModel : JSONModel
 
+
+
 @end

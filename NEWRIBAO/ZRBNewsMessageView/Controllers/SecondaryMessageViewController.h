@@ -17,6 +17,9 @@
 #import "ZRBTransitionVerticalPush.h"
 #import "ZRBTransitionVerticalPop.h"
 #import "ZRBApprovalAnimationView.h"
+#import "ZRBSharedView.h"
+
+#import "ZRBCollectionViewController.h"
 //代理传值 COntroller层 传值给View层 网络中的信息
 @protocol ZRBGiveJSONModelMessageToViewDelegate <NSObject>
 
@@ -24,8 +27,19 @@
 
 @end
 
+@protocol ZRBGiveIdCollectionToViewControllerDelegate <NSObject>
+
+- (void) giveIdCollectionToViewController:(NSString *)idString;
+
+@end
+
+
 @interface SecondaryMessageViewController : UIViewController
 <UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate,UINavigationControllerDelegate>
+
+@property (nonatomic, strong) ZRBCollectionViewController * collectionController;
+
+@property (nonatomic, weak) id <ZRBGiveIdCollectionToViewControllerDelegate> collectionDelegete;
 
 @property (nonatomic, strong) ZRBMainWKWebView * mainWebView;
 

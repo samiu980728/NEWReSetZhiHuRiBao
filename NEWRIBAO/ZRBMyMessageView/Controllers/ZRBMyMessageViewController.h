@@ -10,7 +10,7 @@
 #import "ZRBMessageVView.h"
 #import "ZRBMainVIew.h"
 #import <Masonry.h>
-
+#import "ZRBCollectionViewController.h"
 
 @class ZRBMyMessageViewController;
 

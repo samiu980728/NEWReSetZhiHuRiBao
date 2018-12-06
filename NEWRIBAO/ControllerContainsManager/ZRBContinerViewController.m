@@ -77,9 +77,6 @@
 - (void)addMenuViewController
 {
     //创建菜单控制器
-    ZRBMyMessageViewController * messageViewController = [[ZRBMyMessageViewController alloc] init];
-    
-    
 //    ZRBMessageVView * messageView = [[ZRBMessageVView alloc] initWithFrame:CGRectMake(-320, 0, 320, [UIScreen mainScreen].bounds.size.height)];
 //    messageView.userInteractionEnabled = YES;
 //    messageView.backgroundColor = [UIColor whiteColor];
@@ -88,7 +85,7 @@
 //    [messageViewController.view addSubview:messageView];
     
     
-    [self setMyMessageViewController:messageViewController];
+    [self setMyMessageViewController:[[ZRBMyMessageViewController alloc]init]];
     [self addChildViewController:self.myMessageViewController];
     [self.view addSubview:self.myMessageViewController.view];
     
@@ -121,7 +118,9 @@
     }completion:^(BOOL finished) {
         _isMenuOpen = !_isMenuOpen;
         //根据角标设置控制器
-        [self setContentController:self.viewControllersArray[self.controllerIndexInteger]];
+        if ( [self.viewControllersArray isKindOfClass:[NSArray class]] && _viewControllersArray.count > 0 ){
+        [self setContentController:self.viewControllersArray[_controllerIndexInteger]];
+        }
         if ( !_isMenuOpen ){
             [UIView animateWithDuration:0.2 delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 //把myMessageViewController 控制的视图还原到原坐标位置： -320, 0

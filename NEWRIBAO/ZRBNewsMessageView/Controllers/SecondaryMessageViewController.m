@@ -126,6 +126,7 @@
             [_tabBarView.goNextNewsViewButton addTarget:self action:@selector(pressGoNextViewsButton:) forControlEvents:UIControlEventTouchUpInside];
             [_tabBarView.returnMainViewButton addTarget:self action:@selector(pressReturnMainViewButton:) forControlEvents:UIControlEventTouchUpInside];
             [_tabBarView.giveApproveButton addTarget:self action:@selector(pressGiveApproveButton:) forControlEvents:UIControlEventTouchUpInside];
+            [_tabBarView.shareNewsButton addTarget:self action:@selector(pressSharedButton:) forControlEvents:UIControlEventTouchUpInside];
             _tabBarView.giveApproveButton.adjustsImageWhenHighlighted = NO;
             _tabBarView.giveApproveButton.selected = NO;
             
@@ -143,6 +144,40 @@
     } error:^(NSError *error) {
         NSLog(@"网络请求错误");
     }];
+}
+
+- (void)pressSharedButton:(UIButton *)idSender
+{
+    ZRBSharedView * sharedView = [[ZRBSharedView alloc] initWithFrame:CGRectMake(200, 560, 200, 100)];
+    [sharedView.collectionButton addTarget:self action:@selector(pressCollectionButton:) forControlEvents:UIControlEventTouchUpInside];
+    sharedView.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"2.png"]];
+    [self.view addSubview:sharedView];
+}
+
+- (void)pressCollectionButton:(UIButton *)idSender
+{
+    //需要获得该id 同时进行网络请求 两种方法
+    //还需要一个Controller
+    //用协议？？  传一个_resaveIdString到另一个Controller 在这个Controller中调用网络请求块函数
+    //请求一天的首页信息：图片和标题内容   然后再一个Controller 这个Controller加载详情界面内容
+    //还需要一个Controller 这个Controller不用新建 直接用评论的Controller就好
+    [idSender setTitle:@"已收藏" forState:UIControlStateNormal];
+    if ( [self.collectionDelegete respondsToSelector:@selector(giveIdCollectionToViewController:)] ){
+        [self.collectionDelegete giveIdCollectionToViewController:_resaveIdString];
+    }
+    
+    //这样子是不行的 因为会创建两次ZRBCollectionViewController 那么第一次传入的idString数据会丢失
+    //应该用协议传值
+    //先试试
+    //1. 直接协议传值给ZRBCollectionViewController 看每次点击收藏 她会不会这个代理执行多次
+    //2. 创建一个ZRBCollectionViewController的单例 这样每次alloc init 只会重复调用那个单例
+#pragma mark  先用单例的方法
+    _collectionController = [ZRBCollectionViewController sharedViewController];
+    if ( !_collectionController.collectionIdMutArray ){
+        _collectionController.collectionIdMutArray = [[NSMutableArray alloc] init];
+    }
+    [_collectionController.collectionIdMutArray addObject:_resaveIdString];
+    
 }
 
 - (void)pressGiveApproveButton:(UIButton *)idSender
@@ -179,38 +214,29 @@
     //我认为应该在dispatch_after 0.7之后 让label上的文字消失即可
 #pragma mark  看CALayer
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     CAKeyframeAnimation * pathAnimation = [CAKeyframeAnimation animationWithKeyPath:@"position"];
     pathAnimation.calculationMode = kCAAnimationPaced;
     pathAnimation.fillMode = kCAFillModeForwards;
     pathAnimation.removedOnCompletion = NO;
-    pathAnimation.duration = 0.7;
+    pathAnimation.duration = 0.3;
     pathAnimation.repeatCount = 0;
     CGMutablePathRef curvedPath = CGPathCreateMutable();
-    CGPathMoveToPoint(curvedPath, NULL, 300, 660);
-    CGPathAddQuadCurveToPoint(curvedPath, NULL, 300, 650, 300, 640);
+    CGPathMoveToPoint(curvedPath, NULL, 316, 660);
+    CGPathAddQuadCurveToPoint(curvedPath, NULL, 316, 650, 316, 640);
     pathAnimation.path = curvedPath;
     CGPathRelease(curvedPath);
     UILabel * label = [[UILabel alloc] initWithFrame:CGRectMake(130, 620, 200, 40)];
+    UILabel * textLabel = [[UILabel alloc] initWithFrame:CGRectMake(180, 630, 100, 20)];
+    textLabel.font = [UIFont systemFontOfSize:15];
+    textLabel.textAlignment = NSTextAlignmentCenter;
+    //textLabel.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"2.png"]];
+    textLabel.text = @"156";
     label.textAlignment = NSTextAlignmentCenter;
     label.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"2.png"]];
     label.font = [UIFont systemFontOfSize:15];
-    label.text = @"156";
-   // [label sizeToFit];
+    //label.text = @"156";
     [self.view addSubview:label];
+    [self.view addSubview:textLabel];
     
     UILabel * numLabel = [[UILabel alloc] initWithFrame:CGRectMake(300, 576, 200, 40)];
     //numLabel.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"2.png"]];
@@ -219,10 +245,25 @@
     [self.view addSubview:numLabel];
     [numLabel.layer addAnimation:pathAnimation forKey:@"moveTheSquare"];
 
+    
+    dispatch_time_t disappearTime = dispatch_time(DISPATCH_TIME_NOW, (ino64_t)(0.7 * NSEC_PER_SEC));
+   // dispatch_after(disappearTime, dispatch_get_main_queue(), ^{
+        [UIView animateWithDuration:0.1 delay:0.1 usingSpringWithDamping:0.2 initialSpringVelocity:0.6 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            textLabel.alpha = 0.5;
+            textLabel.frame = CGRectMake(180, 620, 100, 20);
+        } completion:^(BOOL finished) {
+            dispatch_time_t disappearTime1 = dispatch_time(DISPATCH_TIME_NOW, (ino64_t)(0.1 * NSEC_PER_SEC));
+            dispatch_after(disappearTime1, dispatch_get_main_queue(), ^{
+                [textLabel removeFromSuperview];
+            });
+        }];
+   // });
+    
     dispatch_time_t time = dispatch_time(DISPATCH_TIME_NOW, (ino64_t)(2 * NSEC_PER_SEC));
     dispatch_after(time, dispatch_get_main_queue(), ^{
         [label removeFromSuperview];
         [numLabel removeFromSuperview];
+        //[textLabel removeFromSuperview];
     });
     
 }

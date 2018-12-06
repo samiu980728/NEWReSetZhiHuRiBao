@@ -83,6 +83,6 @@ typedef void(^ErrorHandle)(NSError *error);
 //导入网络请求
 - (void)fetchDataWithMainJSONModelSucceed:(ZRBGetNewJSONModelHandle)succeedBlock error:(ErrorHandle)errorBlock;
 
--(void)fetchDataFromNetisReferesh:(BOOL)isRefresh Succeed:(ZRBNSArrayBlock)succeedBlock error:(ErrorHandle)errorBlock;
+- (void)fetchDataFromNetisReferesh:(BOOL)isRefresh Succeed:(ZRBNSArrayBlock)succeedBlock error:(ErrorHandle)errorBlock;
 
 @end

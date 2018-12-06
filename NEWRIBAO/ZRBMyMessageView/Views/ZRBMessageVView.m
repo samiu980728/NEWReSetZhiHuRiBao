@@ -15,19 +15,19 @@
     self = [super initWithFrame:frame];
     if ( self ){
         self.presonImageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self addSubview:self.presonImageButton];
+        [self addSubview:_presonImageButton];
         
         self.collectionButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self addSubview:self.collectionButton];
+        [self addSubview:_collectionButton];
         
         self.newsButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self addSubview:self.newsButton];
+        [self addSubview:_newsButton];
         
         self.setButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self addSubview:self.setButton];
+        [self addSubview:_setButton];
 
         self.mainNewsButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self addSubview:self.mainNewsButton];
+        [self addSubview:_mainNewsButton];
         
     }
     return self;
@@ -104,8 +104,6 @@
     //self.mainNewsButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     [self.mainNewsButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 200)];
     [self.mainNewsButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 150)];
-//    self.mainNewsButton.imageView.userInteractionEnabled = NO;
-//    self.mainNewsButton.titleLabel.userInteractionEnabled = NO;
     
     [self.mainNewsButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.collectionButton.mas_bottom).offset(30);

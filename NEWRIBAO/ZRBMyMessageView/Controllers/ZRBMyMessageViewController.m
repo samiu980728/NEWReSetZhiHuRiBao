@@ -8,6 +8,7 @@
 
 #import "ZRBMyMessageViewController.h"
 #import <Masonry.h>
+#import "ZRBContinerViewController.h"
 @interface ZRBMyMessageViewController ()
 
 @end
@@ -19,7 +20,8 @@
     // Do any additional setup after loading the view.
     self.view.userInteractionEnabled = YES;
     [self.view setBackgroundColor:[UIColor darkGrayColor]];
-    
+//    _navController = [[UINavigationController alloc] initWithRootViewController:self];
+//    _navController.title = @"你好";
     _iNum = 0 ;
     ZRBMessageVView * messageView = [[ZRBMessageVView alloc] init];
     //ZRBMessageVView * messageView = [[ZRBMessageVView alloc] initWithFrame:CGRectMake(-320, 0, 320, [UIScreen mainScreen].bounds.size.height)];
@@ -29,9 +31,6 @@
 //    messageView.frame = CGRectMake(-320, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
     //messageView.frame = CGRectMake(-320, 0, 320, [UIScreen mainScreen].bounds.size.height);
 //    messageView.mainNewsButton.backgroundColor = [UIColor blackColor];
-
-
-#pragma mark 问题： 点击事件无法响应
     messageView.mainNewsButton.tag = 1;
     [messageView.mainNewsButton addTarget:self action:@selector(pressMainNewsButton:) forControlEvents:UIControlEventTouchUpInside];
     [messageView.collectionButton addTarget:self action:@selector(pressCollectionButton:) forControlEvents:UIControlEventTouchUpInside];
@@ -44,40 +43,63 @@
         make.left.mas_equalTo(self.view.mas_left);
         make.width.mas_equalTo(320);
     }];
-//    [self addMenuItems];
     self.view.frame = CGRectMake(-320, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+}
+
+- (void)initWithMessageView
+{
+    
+}
+
+- (void)dealloc
+{
+    NSLog(@"@视图销毁");
 }
 
 - (void)pressCollectionButton:(UIButton *)idSender
 {
-    NSLog(@"12345567889");
     ZRBCollectionViewController * controller = [[ZRBCollectionViewController alloc] init];
-    UINavigationController * navController = [[UINavigationController alloc] initWithRootViewController:controller];
+        UINavigationController * naviagtionController = [[UINavigationController alloc] initWithRootViewController:controller];
+    [self presentViewController:naviagtionController animated:YES completion:nil];
+#pragma mark 然后dimiss回去 然后再用数据交互把收藏界面弄出来
     
-    
-    
-    //ViewController无法被push
-    //SecondaryMessageViewController 里面 id的赋值已经完毕
-    //但还未验证
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    [self.navigationController pushViewController:navController animated:YES];
-    
-    
-//    ZRBCollectionViewController * viewController = [ZRBCollectionViewController sharedViewController];
-//    [self.navigationController pushViewController:viewController animated:YES];
+//    UINavigationController * naviagtionController = [[UINavigationController alloc] initWithRootViewController:self];
+//    NSLog(@"naviagtionController.parentViewController = %@",naviagtionController.parentViewController);
+//    [self performSelector:@selector(openMueu)];
 }
+
+- (void)openMueu
+{
+    ZRBCollectionViewController * collViewController = [[ZRBCollectionViewController alloc] init];
+    NSLog(@"12345678self.navigationController = %@",self.navigationController);
+    [self.navigationController pushViewController:collViewController animated:YES];
+}
+
+- (UIViewController *)getCurrentVC
+{
+    UIViewController * result = nil;
+    
+    UIWindow * window = [[UIApplication sharedApplication] keyWindow];
+    if ( window.windowLevel != UIWindowLevelNormal ){
+        NSArray * windows = [[UIApplication sharedApplication] windows];
+        for (UIWindow * tmpWin in windows) {
+            if ( tmpWin.windowLevel == UIWindowLevelNormal ){
+                window = tmpWin;
+                break;
+            }
+        }
+    }
+    UIView * frontView = [[window subviews] objectAtIndex:0];
+    id nextResponder = [frontView nextResponder];
+    
+    if ( [nextResponder isKindOfClass:[UIViewController class]] ){
+        result = nextResponder;
+    }else{
+        result = window.rootViewController;
+    }
+    return result;
+}
+
 
 - (void)pressMainNewsButton:(UIButton *)sender
 {

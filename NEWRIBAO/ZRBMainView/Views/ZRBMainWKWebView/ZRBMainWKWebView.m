@@ -31,7 +31,8 @@
 //        _scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
 //        _scrollView.contentSize = CGSizeMake(0, 5000);
 //        _scrollView.delegate = self;
-        
+        _refresh = YES;
+        _flag = 0;
         _webView = [[WKWebView alloc] initWithFrame:self.frame];
         _webView.UIDelegate = self;
         _webView.navigationDelegate = self;
@@ -59,7 +60,7 @@
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    NSLog(@"sdfads");
+    
 }
 -(void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation
 {

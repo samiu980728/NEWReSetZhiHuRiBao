@@ -9,9 +9,12 @@
 #import "ZRBContinerViewController.h"
 #import "ZRBMyMessageViewController.h"
 #import "ZRBMainViewController.h"
-@interface ZRBContinerViewController ()<MenuControllerDelegate>
+#import "ZRBCollectionViewController.h"
+@interface ZRBContinerViewController ()<MenuControllerDelegate,UINavigationControllerDelegate>
 
 @property (nonatomic, strong) ZRBMyMessageViewController * myMessageViewController;
+
+@property (nonatomic, strong) UINavigationController * navController;
 
 //存放和记录当前呈现的主控制器界面
 @property (nonatomic, strong) UIViewController* contentController;
@@ -35,6 +38,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    self.view.backgroundColor = [UIColor whiteColor];
     self.view.userInteractionEnabled = YES;
     [self addMenuViewController];
     [self addContentControllers];
@@ -45,11 +49,31 @@
     ZRBMainViewController * mainController = [[ZRBMainViewController alloc] init];
     UINavigationController * navController = [[UINavigationController alloc] initWithRootViewController:mainController];
     
-    [self setViewControllersArray:@[navController]];
-    [self setContentController:navController];
+//    [self setViewControllersArray:@[navController]];
+    //创建菜单控制器
+    self.myMessageViewController = [[ZRBMyMessageViewController alloc]init];
+    self.myMessageViewController.view.backgroundColor = [UIColor whiteColor];
     
+   UINavigationController * nav = [[UINavigationController alloc] initWithRootViewController:self.myMessageViewController];
+    NSLog(@"self.myMessageViewController.navigationController = %@",self.myMessageViewController.navigationController);
+    //下面这两条差不多
+    [self addChildViewController:self.myMessageViewController];
+    [self.view addSubview:self.myMessageViewController.view];
+    
+    [self setViewControllersArray:@[navController,nav]];
+    [self setContentController:navController];
+
+    //此为视图控制器
+    self.navController.delegate = self;
+    self.myMessageViewController.delegate = self;
 }
 
+- (void)openMueu
+{
+//    ZRBCollectionViewController * collViewController = [[ZRBCollectionViewController alloc] init];
+//    NSLog(@"123self.navigationController = %@",self.navigationController);
+//    [self.navigationController pushViewController:collViewController animated:YES];
+}
 //重写 完成主界面视图的添加和移除
 - (void)setContentController:(UIViewController *)contentController
 {
@@ -76,21 +100,23 @@
 //封装菜单界面
 - (void)addMenuViewController
 {
-    //创建菜单控制器
-//    ZRBMessageVView * messageView = [[ZRBMessageVView alloc] initWithFrame:CGRectMake(-320, 0, 320, [UIScreen mainScreen].bounds.size.height)];
-//    messageView.userInteractionEnabled = YES;
-//    messageView.backgroundColor = [UIColor whiteColor];
-//    [messageView.mainNewsButton addTarget:self action:@selector(pressMainNewsButton:) forControlEvents:UIControlEventTouchUpInside];
-//    [messageView.collectionButton addTarget:self action:@selector(pressCollectionButton:) forControlEvents:UIControlEventTouchUpInside];
-//    [messageViewController.view addSubview:messageView];
-    
-    
-    [self setMyMessageViewController:[[ZRBMyMessageViewController alloc]init]];
-    [self addChildViewController:self.myMessageViewController];
-    [self.view addSubview:self.myMessageViewController.view];
-    
-    //此为视图控制器
-    self.myMessageViewController.delegate = self;
+//    //创建菜单控制器
+//    [self setMyMessageViewController:[[ZRBMyMessageViewController alloc]init]];
+//
+//    [self setNavController:[[UINavigationController alloc] initWithRootViewController:self.myMessageViewController]];
+//
+//#pragma mark 加这两句话 就能打印出来 证明 messageVIewCOntroller的UINavigationController存在
+//
+////    [self addChildViewController:self.navController];
+////    [self.view addSubview:self.myMessageViewController.view];
+//
+//    //下面这两条差不多
+//    [self addChildViewController:self.myMessageViewController];
+//    [self.view addSubview:self.myMessageViewController.view];
+//
+//    //此为视图控制器
+//    self.navController.delegate = self;
+//    self.myMessageViewController.delegate = self;
 }
 - (void)pressMainNewsButton:(UIButton *)sender
 {

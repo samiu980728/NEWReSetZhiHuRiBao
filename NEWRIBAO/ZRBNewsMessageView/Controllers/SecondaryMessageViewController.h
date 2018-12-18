@@ -20,6 +20,7 @@
 #import "ZRBSharedView.h"
 
 #import "ZRBCollectionViewController.h"
+#import "ZRBCollectionManager.h"
 //代理传值 COntroller层 传值给View层 网络中的信息
 @protocol ZRBGiveJSONModelMessageToViewDelegate <NSObject>
 
@@ -65,6 +66,8 @@
 @property (nonatomic, strong) UIScrollView * scrollView;
 
 @property (nonatomic, strong) NSMutableArray * idRequestMutArray;
+
+@property (nonatomic, strong) WKWebView * refreshWkWebView;
 
 @property (nonatomic, assign) BOOL refresh;
 - (void)fenethCommentsNumFromCommentManagerBlock;

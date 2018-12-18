@@ -34,5 +34,6 @@
 
 @property (nonatomic, copy) NSArray * css;
 
+//@property (nonatomic, copy) NSArray<Optional> * images;
 
 @end

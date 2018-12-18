@@ -10,9 +10,12 @@
 #import "ZRBNewsTableViewCell.h"
 #import "ZRBContinerViewController.h"
 #import <UIImageView+WebCache.h>
+
 @interface ZRBMainViewController ()<UIScrollViewDelegate>
 
 @property (nonatomic, strong) UIScrollView * scrollView;
+
+@property (nonatomic, assign) NSInteger closeAndClickInteger;
 
 @end
 
@@ -22,6 +25,9 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     _refreshNumInteger = 0;
+    _closeAndClickInteger = 0;
+    _ifNetRequestInteger = 0;
+    _haveGetSQLDataInteger = 0;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadDataTongZhiController:) name:@"reloadDataTongZhiController" object:nil];
     
@@ -42,9 +48,6 @@
     if ( [self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)] ){
         self.navigationController.interactivePopGestureRecognizer.delegate = nil;
     }
-
-    
-    
     _scrollView = [[UIScrollView alloc] initWithFrame:self.view.bounds];
     _scrollView.contentSize = CGSizeMake(0, 900);
     _scrollView.delegate = self;
@@ -81,15 +84,150 @@
     }];
     _barImageView = [[UIImageView alloc] init];
     _barImageView = self.navigationController.navigationBar.subviews.firstObject;
+    
+    //创建数据库
+    _tableName = @"JPXUser";
+    NSString * docsdir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)lastObject];
+    NSString * dbPath = [docsdir stringByAppendingPathComponent:@"title.sqlite1"];
+    //_sqlDataBase = [FMDatabase databaseWithPath:dbPath];\
+    //开始弄数据库啦
+    [self createFMDBDataSource];
+    
+    //创建image数据库
+    _imageTableName = @"JPXImageUrlUser";
+    NSString * sqlName = @"image.sqlite1";
+    ZRBSQLiteManager * manager = [ZRBSQLiteManager sharedManager];
+    
+    //问题：这个数据库
+    [manager createFMDBImageDataSourceWithSQLName:sqlName];
+    
+    _imageRealSQLDataBase = manager.imageSqlDataBase;
+    if ( _imageRealSQLDataBase ) {
+        NSLog(@"存在");
+    }
 }
 
 //侧边框栏的展开和关闭
 - (void)openCloseMenu:(UIBarButtonItem *)sender
 {
+    _closeAndClickInteger++;
+    NSLog(@"self.navigationController.parentViewController = %@",self.navigationController.parentViewController);
     [self.navigationController.parentViewController performSelector:@selector(openCloseMenu)];
 }
 
-//manager类网络请求
+//开始FMDB！！！！！
+- (void)createFMDBDataSource
+{
+//    NSDocumentDirectory 是指程序中对应的Documents路径，
+//    而NSDocumentionDirectory对应于程序中的Library/Documentation路径，这个路径是没有读写权限的，所以看不到文件生成。
+    NSString * docsdir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)lastObject];
+    NSString * dbPath = [docsdir stringByAppendingPathComponent:@"title.sqlite1"];
+    FMDatabase * db = [FMDatabase databaseWithPath:dbPath];
+    _sqlDataBase = db;
+    [db open];
+    if ([db open]) {
+        NSString * sql = @"CREATE TABLE 'JPXUser' ('id' INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , 'title' text)";
+        BOOL res = [db executeUpdate:sql];
+        if (!res) {
+            NSLog(@"错啦");
+        } else {
+            NSLog(@"对啦");
+        }
+        [db close];
+    } else {
+        NSLog(@"打不开呀");
+    }
+    
+    //删除
+    //[self deleteSQLDataWith:db andTableName:@"JPXUser"];
+    
+    //传入
+    //[self insertMessages:_titleMutArray1 toSQL:db];
+    
+    //打印
+    //[self printfSQLDataWith:db andTableName:@"JPXUser"];
+}
+
+//传入data 给数据库
+- (void)insertMessages:(NSMutableArray *)titleMutArray toSQL:(FMDatabase *)dataBase
+{
+    [dataBase open];
+    BOOL  insertSQLResult = NO;
+    NSInteger  insertNum = 0;
+    NSError * error = nil;
+    
+    for (NSInteger i = 0; i < titleMutArray.count; i++) {
+        NSString * sql = @"insert into JPXUser (title) values(?) ";
+        NSLog(@"第%li次传值",i);
+        NSData * titleData = [NSJSONSerialization dataWithJSONObject:titleMutArray[i] options:NSJSONWritingPrettyPrinted error:&error];
+        NSString * jsonStr = [[NSString alloc] initWithData:titleData encoding:NSUTF8StringEncoding];
+        NSLog(@"jsonStr = %@  titleMutArray = %@",jsonStr,titleMutArray);
+        insertSQLResult = [dataBase executeUpdate:sql, jsonStr];
+        if (!insertSQLResult) {
+            NSLog(@"传值失败");
+        } else {
+            NSLog(@"传值成功");
+        }
+    }
+    [dataBase close];
+}
+
+//删除数据库
+- (void)deleteSQLDataWith:(FMDatabase *)dataBase andTableName:(NSString *)tableNameStr
+{
+    if ([dataBase open]) {
+        NSString * sql = [NSString stringWithFormat:@"delete from %@",tableNameStr];
+        BOOL res = [dataBase executeUpdate:sql];
+        if (!res) {
+            NSLog(@"error to delete db data");
+        } else {
+            NSLog(@"succ to deleta db data");
+        }
+        [dataBase close];
+    }
+}
+
+//打开数据库
+- (void)openSQLDataWith:(FMDatabase *)dataBase andTableName:(NSString *)tableNameStr
+{
+    if ([dataBase open]) {
+        FMResultSet * getRes = [dataBase executeQuery:[NSString stringWithFormat:@"SELECT * FROM %@",tableNameStr]];
+        if ([_titleMutArray1 isKindOfClass:[NSArray class]] &&_titleMutArray1.count == 0) {
+        while ([getRes next]) {
+            NSString * title = [NSString stringWithFormat:@"%@",[getRes stringForColumnIndex:1]];
+            NSLog(@"title.length = %li",title.length);
+            NSString * newTitle1 = [title stringByReplacingOccurrencesOfString:@"[" withString:@""];
+            NSString * newTitle2 = [newTitle1 stringByReplacingOccurrencesOfString:@"]" withString:@""];
+            NSString * newTitle3 = [newTitle2 stringByReplacingOccurrencesOfString:@" " withString:@""];
+            NSString * newTitle4 = [newTitle3 stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+            NSString * newTitle5 = [newTitle4 stringByReplacingOccurrencesOfString:@"\"" withString:@""];
+            [_titleMutArray1 addObject:newTitle5];
+        }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [_MainView.mainMessageTableView reloadData];
+            });
+        }
+        [dataBase close];
+    }
+}
+
+//下一步：  储存图片路径！！！
+
+//打印数据库
+- (void)printfSQLDataWith:(FMDatabase *)dataBase andTableName:(NSString *)tableNameStr
+{
+    if ([dataBase open]) {
+        FMResultSet * getRes = [dataBase executeQuery:[NSString stringWithFormat:@"SELECT * FROM %@",tableNameStr]];
+        while ([getRes next]) {
+            NSInteger userId = [getRes intForColumnIndex:0];
+            NSString * title = [getRes stringForColumnIndex:1];
+            NSLog(@"title = %@ user id = %li",title,userId);
+        }
+        [dataBase close];
+    }
+}
+
+//判断数据库中是否有内容，有的话 加载即可
 
 //给这加个参数 BOOL 类型 判断是否上拉 传参数进行以下两种判断即可
 - (void)fenethMessageFromManagerBlock:(BOOL)isRefresh
@@ -99,14 +237,12 @@
     _titleMutArray1 = [[NSMutableArray alloc] init];
     _imageMutArray1 = [[NSMutableArray alloc] init];
     
-    NSMutableArray * mainImageMutArray = [[NSMutableArray alloc] init];
-    NSMutableArray * mainTitleMutArray = [[NSMutableArray alloc] init];
-    //测试
-    NSString * mainTestStr = [[NSString alloc] init];
+    dispatch_queue_t queue = dispatch_queue_create("NetRequestQueue", DISPATCH_QUEUE_SERIAL);
+   // dispatch_async(queue, ^{
+//    });
     if ( isRefresh == NO ){
         [[ZRBCoordinateMananger sharedManager] fetchDataFromNetisReferesh:NO Succeed:^(NSArray *array) {
-            NSLog(@"array = %@",array);
-            
+            _ifNetRequestInteger = 1;
             TotalJSONModel * totalJSONModel = array[0];
             [_allDateMutArray addObject:totalJSONModel.date];
             NSArray * data = totalJSONModel.stories;
@@ -129,6 +265,16 @@
                 [_urlImageMutArray addObject:[NSURL URLWithString:[NSString stringWithFormat:@"%@",storJSONModel.images[0]]]];
             }
                         dispatch_async(dispatch_get_main_queue(), ^{
+                            //[self createFMDBDataSource];
+                            [self deleteSQLDataWith:_sqlDataBase andTableName:_tableName];
+                            [self insertMessages:_titleMutArray1 toSQL:_sqlDataBase];
+                            [self printfSQLDataWith:_sqlDataBase andTableName:_tableName];
+                            
+                            ZRBSQLiteManager * manager = [ZRBSQLiteManager sharedManager];
+                            NSLog(@"_imageRealSQLDataBase = %@",_imageRealSQLDataBase);
+                            [manager deleteSQLImageDataWith:_imageRealSQLDataBase andTableName:_imageTableName];
+                            [manager insertImageMessages:_urlImageMutArray toSQL:_imageRealSQLDataBase];
+                            
                             [_MainView.mainMessageTableView reloadData];
                         });
             
@@ -138,7 +284,6 @@
     
     }else{
         [[ZRBCoordinateMananger sharedManager] fetchDataFromNetisReferesh:YES Succeed:^(NSArray *array) {
-            NSLog(@"多次之后的 array = %@",array);
             if ( _titleMutArray1.count > 0 ){
                 [_titleMutArray1 removeAllObjects];
                 [_imageMutArray1 removeAllObjects];
@@ -150,7 +295,6 @@
             for (int i = 0; i < array.count; i++) {
                 TotalJSONModel * totalJSONModel = array[i];
                 //现在这里面有一天的数据
-                NSLog(@"totalJSONModel.stories = %@",totalJSONModel.stories);
                 //一天的数据
                 NSMutableArray * titleMutArray = [[NSMutableArray alloc] init];
                 NSMutableArray * imageMutArray = [[NSMutableArray alloc] init];
@@ -159,7 +303,6 @@
                 [_allDateMutArray addObject:totalJSONModel.date];
                
                 NSArray * data = totalJSONModel.stories;
-                NSLog(@"data.count = %li - -- - - - - - -- - - ",data.count);
                     for (int i = 0; i < data.count; i++) {
                         StoriesJSONModel * storJSONMOdel = data[i];
                         [titleMutArray addObject:storJSONMOdel.title];
@@ -178,13 +321,6 @@
                 [_idSelfMutArray addObject:idMutArray];
                 [_urlImageMutArray addObject:urlMutArray];
             }
-            
-            NSLog(@"_titleMutArray1 = %@",_titleMutArray1);
-            
-//            dispatch_async(dispatch_get_main_queue(), ^{
-//                [_MainView.mainMessageTableView reloadData];
-//            });
-            
             NSNotification * reloadDateNotification = [NSNotification notificationWithName:@"reloadDataTongZhiController" object:nil];
             [[NSNotificationCenter defaultCenter] postNotification:reloadDateNotification];
         } error:^(NSError *error) {
@@ -192,21 +328,42 @@
         }];
         
     }
-    
-
+         //});
+    dispatch_time_t time = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3*NSEC_PER_SEC));
+    dispatch_after(time, dispatch_get_main_queue(), ^{
+        if (_ifNetRequestInteger == 0) {
+            _haveGetSQLDataInteger = 1;
+            [_allDateMutArray addObject:@"23333"];
+            
+            ZRBSQLiteManager * manager = [ZRBSQLiteManager sharedManager];
+            [manager openSQLImageDataWith:_imageRealSQLDataBase andTableName:_imageTableName andimageMutArray:_urlImageMutArray];
+            
+            [self openSQLDataWith:_sqlDataBase andTableName:_tableName];
+            
+        }
+    });
 }
+
+//接下来： 就是把uicode 编码串转化为中文字符 转换不成功的关键就是
+//她把一个数组传给了NSString类型 导致她打印出来：数组！！！！
 
 - (void)reloadDataTongZhiController:(NSNotification *)noti
 {
     dispatch_async(dispatch_get_main_queue(), ^{
+//        [self deleteSQLDataWith:_sqlDataBase andTableName:_tableName];
+//        [self insertMessages:_titleMutArray1 toSQL:_sqlDataBase];
         [_MainView.mainMessageTableView reloadData];
     });
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    NSLog(@"_allDateMutArray.count = %li",_allDateMutArray.count);
+    //if ([_allDateMutArray isKindOfClass:[NSArray class]] && _allDateMutArray.count > 0) {
     return _allDateMutArray.count;
+   // }
+//    if (_haveGetSQLDataInteger == 1 ){
+//        return _haveGetSQLDataInteger;
+//    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -219,27 +376,51 @@
     }
         if ( _allDateMutArray.count == 1 ){
         if ( _titleMutArray1.count > 0 ){
-            NSLog(@"indexPath.row = %li",indexPath.row);
-        //cell1.newsLabel.text = _titleMutArray1[indexPath.row];
+            if (_haveGetSQLDataInteger == 0) {
+                cell1.newsLabel.text = _titleMutArray1[indexPath.row][0];
+                NSString * urlStr = [NSString stringWithFormat:@"%@",_urlImageMutArray[indexPath.row]];
+                [cell1.newsImageView sd_setImageWithURL:[NSURL URLWithString:urlStr]];
+            }
+            else if (_haveGetSQLDataInteger == 1) {
+                cell1.newsLabel.text = _titleMutArray1[indexPath.row];
+                NSString * urlStr = [NSString stringWithFormat:@"%@",_urlImageMutArray[indexPath.row]];
+                //此方法会先从memory中取。
+                UIImage * image = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:urlStr];
+                if (image) {
+                    [cell1.newsImageView sd_setImageWithURL:[NSURL URLWithString:urlStr]];
+                }
+            }
             
-        cell1.newsLabel.text = _titleMutArray1[indexPath.row][0];
-//        [_titleMutArray1 removeObjectAtIndex:0];
-            
-            NSString * urlStr = [NSString stringWithFormat:@"%@",_urlImageMutArray[indexPath.row]];
-            NSLog(@"urlStr = %@",urlStr);
-        [cell1.newsImageView sd_setImageWithURL:[NSURL URLWithString:urlStr]];
-        //[_urlImageMutArray removeObjectAtIndex:0];
+//            if (_imageMutArray1.count > 0){
+//                NSString * urlStr = [NSString stringWithFormat:@"%@",_urlImageMutArray[indexPath.row]];
+//                [cell1.newsImageView sd_setImageWithURL:[NSURL URLWithString:urlStr]];
+//            }
         }
     }else{
         if ( _allDateMutArray.count != 0 ){
-    cell1.newsLabel.text = _titleMutArray1[indexPath.section][indexPath.row];
-    cell1.newsImageView.image = _imageMutArray1[indexPath.section][indexPath.row];
+                cell1.newsLabel.text = _titleMutArray1[indexPath.section][indexPath.row];
+                cell1.newsImageView.image = _imageMutArray1[indexPath.section][indexPath.row];
         }
     }
-    
     return cell1;
-    
 }
+
+//照片数据库创建失败！！！！！
+//原因：  manager 类里面传值失败！！！！
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
@@ -247,9 +428,10 @@
     if ( _headerFooterView == nil ){
         _headerFooterView = [[ZRBDetailsTableViewHeaderFooterView alloc] initWithReuseIdentifier:@"detailHeaderView"];
     }
-    
     if ( section != 0 ){
-    _headerFooterView.dateLabel.text = _allDateMutArray[section];
+        if ([_allDateMutArray isKindOfClass:[NSArray class]] && _allDateMutArray.count > 0){
+            _headerFooterView.dateLabel.text = _allDateMutArray[section];
+        }
     }
     return _headerFooterView;
 }
@@ -265,10 +447,12 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if ( _allDateMutArray.count == 1 ){
-        return _imageMutArray1.count;
+        return _titleMutArray1.count;
     }
-    NSLog(@"section = %li",section);
-    NSArray * array = [NSArray arrayWithObject:_imageMutArray1[section]];
+    if (_haveGetSQLDataInteger == 1) {
+        return _titleMutArray1.count;
+    }
+    NSArray * array = [NSArray arrayWithObject:_titleMutArray1[section]];
     NSInteger i = 0;
     for (NSString * images in array[0]) {
         i++;
@@ -296,9 +480,6 @@
     }else{
         self.navigationController.navigationBar.hidden = NO;
     }
-    
-    
-    //弄SDWebImage 试用
     if (scrollView.bounds.size.height + scrollView.contentOffset.y >scrollView.contentSize.height) {
         
         [UIView animateWithDuration:1.0 animations:^{
@@ -309,13 +490,17 @@
             
            // NSLog(@"发起上拉加载");
             if ( _refresh ){
-                //self.navigationController.navigationBar.hidden = YES;
-                //NSLog(@"发起上拉加载assdasdasdsa");
-            _MainView.testStr = @"你好,我是中国人";
+                
+                //_ifNetRequestInteger = 2;
+                //此时处于无网络状态
+                if (_haveGetSQLDataInteger == 1){
+                    NSLog(@"无网络，加载失败");
+                } else{
+                _MainView.testStr = @"你好,我是中国人";
                 ZRBCoordinateMananger * manager = [ZRBCoordinateMananger sharedManager];
                 manager.ifAdoultRefreshStr = @"用户已经刷新过一次";
-                NSLog(@"manager.ifAdoultRefreshStr = == == = = %@",manager.ifAdoultRefreshStr);
                 [self fenethMessageFromManagerBlock:YES];
+                }
                 _refresh = NO;
             }
             
@@ -346,9 +531,6 @@
 
 - (void)giveCellJSONModelToMainView:(NSMutableArray *)imaMutArray andTitle:(NSMutableArray *)titMutArray
 {
-
-    NSLog(@"****************    imaMutArray = == = = =%@",imaMutArray);
-    NSLog(@"****************Controlller代理协议里的  _imageMutArray = == = = = = == = %@",_mainImageMutArray1);
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
@@ -359,15 +541,18 @@
 
 - (void)pushToWKWebView
 {
-    SecondaryMessageViewController * secondMessageViewController = [[SecondaryMessageViewController alloc] init];
+    if ( _closeAndClickInteger % 2 != 0 ){
+    [self.navigationController.parentViewController performSelector:@selector(openCloseMenu)];
+        _closeAndClickInteger--;
+    }
     
+    SecondaryMessageViewController * secondMessageViewController = [[SecondaryMessageViewController alloc] init];
     ZRBRequestJSONModel * requestJSONModel = [[ZRBRequestJSONModel alloc] init];
     [requestJSONModel setStr];
     if (_allDateMutArray.count == 1) {
         requestJSONModel.idRequestStr = [NSString stringWithFormat:@"%@",_idSelfMutArray[_indexPath.section+_indexPath.row]];
         secondMessageViewController.resaveIdString = [NSString stringWithFormat:@"%@",_idSelfMutArray[_indexPath.section+_indexPath.row]];
         NSInteger intEger = [secondMessageViewController.resaveIdString integerValue];
-        NSLog(@"intEger = %li",intEger);
         secondMessageViewController.idRequestMutArray = [NSMutableArray arrayWithArray:_idSelfMutArray];
     }else{
         secondMessageViewController.resaveIdString = [NSString stringWithFormat:@"%@",_idSelfMutArray[_indexPath.section][_indexPath.row]];
@@ -378,70 +563,9 @@
             [secondMessageViewController.idRequestMutArray addObject:idStr];
         }
         }
-        
-        NSLog(@"secondMessageViewController.idRequestMutArray.count = %li",secondMessageViewController.idRequestMutArray.count);
-//        for (int i = 0; i < _idSelfMutArray.count; i++) {
-//            NSArray * firstArray = [NSArray arrayWithArray:_idSelfMutArray[i]];
-//
-//        }
     }
-    NSLog(@"resaveIdString = %@",secondMessageViewController.resaveIdString);
-    NSLog(@"requestJSONModel.idRequestStr = %@",requestJSONModel.idRequestStr);
-    [self.navigationController pushViewController:secondMessageViewController animated:YES];
+    [self.navigationController pushViewController:secondMessageViewController animated:NO];
 }
-
-//- (void)viewWillAppear:(BOOL)animated
-//{
-//    [super viewWillAppear:animated];
-//    self.navigationController.navigationBar.translucent = NO;
-//    self.navigationItem.title = @"每日新闻";
-//
-//    UIBarButtonItem * leftBarButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"1.png"] style:UIBarButtonItemStyleDone target:self action:@selector(pressLeftBarButton:)];
-//    self.navigationItem.leftBarButtonItem = leftBarButton;
-//}
-
-- (void)pressLeftBarButton:(UIBarButtonItem *)leftBtn
-{
-    NSLog(@"666666");
-    if ( _iNum == 0 ){
-        [_MainView mas_remakeConstraints:^(MASConstraintMaker *make) {
-            //        make.height.mas_equalTo(self.view.bounds.size.height);
-            //        make.width.mas_equalTo(
-            make.left.equalTo(self.view).offset(250);
-            make.top.equalTo(self.view).offset(0);
-            make.width.mas_equalTo([UIScreen mainScreen].bounds.size.width-250);
-            make.height.mas_equalTo([UIScreen mainScreen].bounds.size.height);
-            
-            //创建另一个controller
-            
-            
-            
-            [_messageView mas_makeConstraints:^(MASConstraintMaker *make) {
-                make.left.equalTo(self.view);
-                make.top.equalTo(self.view).offset(50);
-                make.bottom.equalTo(self.view).offset(-50);
-                make.width.mas_equalTo(250);
-                make.height.mas_equalTo([UIScreen mainScreen].bounds.size.height-100);
-            }];
-            
-            //make.edges.equalTo(self.view);
-        }];
-        //在这里new 一个新的视图！
-        
-        //[_aView initScrollView];
-        _iNum++;
-    }
-    
-    
-    else{
-        [_MainView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.edges.equalTo(self.view);
-        }];
-        //在这里new出来的新视图 坐标改变！
-        _iNum--;
-    }
-}
-
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

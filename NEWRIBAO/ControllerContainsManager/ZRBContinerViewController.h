@@ -20,7 +20,7 @@
 @property (nonatomic, weak) id <MenuControllerDelegate> delegate;
 
 @property (nonatomic, strong) ZRBMyMessageViewController * messageViewController;
-
+- (void)openMueu;
 - (void)addMenuViewController;
 - (void)addContentControllers;
 - (void)openCloseMenu;

@@ -87,6 +87,11 @@
 
 @property (nonatomic, assign) NSInteger refreshFlag;
 
+//缓存短评论高度的数组
+@property (nonatomic, strong) NSMutableArray * shortCellHeightMutArray;
+
+@property (nonatomic, strong) NSMutableArray * longCommentCellHeightMutArray;
+
 //缓存高度的数组
 @property (nonatomic, strong) NSMutableArray * cellHeightMutArray;
 

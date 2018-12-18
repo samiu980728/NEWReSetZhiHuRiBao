@@ -36,6 +36,8 @@
     _didCaculateRowAtIndexInteger = 0;
     _numOfLinesInteger = 0;
     
+    _longCommentCellHeightMutArray = [[NSMutableArray alloc] init];
+    _shortCellHeightMutArray = [[NSMutableArray alloc] init];
     _buttonSelectedFlagMutArray = [[NSMutableArray alloc] init];
     _cellIfRefreshButtonMutArray = [[NSMutableArray alloc] init];
     _longCellHeightMutArray = [[NSMutableArray alloc] init];
@@ -234,43 +236,30 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"5555indexPath.row = %li,indexPath.section = %li",indexPath.row,indexPath.section);
-//    if ( _longCommentsNumInteger > 15 )
     if ( indexPath.section == 0 && _longCommentsNumInteger != 0 ){
         if ( [self.allDataMutArray isKindOfClass:[NSArray class]] && _allDataMutArray.count > 0 ){
+            CGFloat cellHeight = 0;
             if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 ){
-                                self.tempCell.expandButton.selected = YES;
-                                [self.tempCell changeNumberOfLines];
+                self.tempCell.expandButton.selected = YES;
+                [self.tempCell changeNumberOfLines];
+                cellHeight = [self.tempCell heightForModel:_allDataMutArray[0][indexPath.row]];
             }
             else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 )
             {
                 self.tempCell.expandButton.selected = NO;
                 [self.tempCell zeroToChangeNumberOfLines];
+                cellHeight = [self.tempCell heightForModel:_allDataMutArray[0][indexPath.row]];
             }
             
-//            if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
-//                self.tempCell.expandButton.selected = YES;
-//                [self.tempCell changeNumberOfLines];
-//            }
-//            else if ( [_cellIfRefreshButtonMutArray[indexPath.section][indexPath.row] integerValue] == 0 )
-//            {
-//                self.tempCell.expandButton.selected = NO;
-//                [self.tempCell zeroToChangeNumberOfLines];
-//            }
-            
-//            else{
-//            if ( [_buttonSelectedFlagMutArray[indexPath.section][indexPath.row] integerValue] == 1 ){
-//                                self.shortTempCell.expandButton.selected = NO;
-//                                [self.shortTempCell zeroToChangeNumberOfLines];
-//            }
-//            }
-    CGFloat cellHeight = [self.tempCell heightForModel:_allDataMutArray[0][indexPath.row]];
+    //CGFloat cellHeight = [self.tempCell heightForModel:_allDataMutArray[0][indexPath.row]];
             if ( _didCaculateRowAtIndexInteger < _longCommentsNumInteger ){
                 _contentOffSetYHeight += cellHeight;
                 _didCaculateRowAtIndexInteger++;
-                NSLog(@"_contentOffSetYHeight = %.2f",_contentOffSetYHeight);
-                NSLog(@"_didCaculateRowAtIndexInteger = %li",_didCaculateRowAtIndexInteger);
             }
-            NSLog(@"_didCaculateRowAtIndexInteger = %li",_didCaculateRowAtIndexInteger);
+            [_longCommentCellHeightMutArray addObject:[NSNumber numberWithFloat:cellHeight]];
+            if ( _longCommentCellHeightMutArray.count == _longCommentsNumInteger ){
+                return [_longCommentCellHeightMutArray[indexPath.row] floatValue];
+            }
     return cellHeight;
         }else{
             return 300;
@@ -297,6 +286,10 @@
             NSLog(@"indexPath.row = %li",indexPath.row);
             NSString * shortStr = [NSString stringWithFormat:@"%@",_allShortDataMutArray[0][indexPath.row]];
             NSLog(@"_allShortDataMutArray[0][indexPath.row]] = %@",[NSString stringWithFormat:@"%@",shortStr]);
+            [_shortCellHeightMutArray addObject:[NSNumber numberWithFloat:cellHeight]];
+            if ( _shortCellHeightMutArray.count == _shortCommentsNumInteger ){
+                return [_shortCellHeightMutArray[indexPath.row] floatValue];
+            }
             return cellHeight;
         }
     }

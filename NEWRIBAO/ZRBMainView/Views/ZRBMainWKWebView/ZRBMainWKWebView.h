@@ -40,6 +40,10 @@
 @property (nonatomic, copy) NSString * shareUrlString;
 
 @property (nonatomic, strong) UIScrollView * scrollView;
+
+@property (nonatomic, assign) BOOL refresh;
+
+@property (nonatomic, assign) NSInteger flag;
 - (void)createAndGetJSONModelWKWebView;
 
 - (void)recieveNotification;

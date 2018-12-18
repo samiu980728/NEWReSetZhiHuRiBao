@@ -11,7 +11,7 @@
 #import "ZRBMainVIew.h"
 #import <Masonry.h>
 #import "ZRBCollectionViewController.h"
-
+#import "ZRBNaviagtionCollectionViewController.h"
 @class ZRBMyMessageViewController;
 
 @protocol MenuControllerDelegate <NSObject>
@@ -32,6 +32,7 @@
 
 @property (nonatomic, strong) ZRBMainVIew * MView;
 
+@property (nonatomic, strong) UINavigationController * navController;
 
 - (void) addMenuItems;
 @end

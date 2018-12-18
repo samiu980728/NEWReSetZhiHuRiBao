@@ -11,14 +11,21 @@
 #import "ZRBCollectiionJSONModel.h"
 typedef void(^ZRBGetLastestNewsHandle)(ZRBCollectiionJSONModel * mainMessageJSONModel);
 
+typedef void(^ZRBGetLastestNewsDictionaryHandle)(NSDictionary * newsDict);
+
 typedef void(^ErrorHandle)(NSError * error);
 
 @interface ZRBCollectionManager : NSObject
 
 + (instancetype)sharedManager;
 
-- (void)fetchBeforeCollectionDataWithIdString:(NSString *)idString Succeed:(ZRBGetLastestNewsHandle)succeedBlock error:(ErrorHandle)errorBlock;
+@property (nonatomic, strong) NSMutableArray * collectionidMutArray;
 
-- (void)fetchNewCollectionDataWithidString:(NSString *)idString Succeed:(ZRBGetLastestNewsHandle)succeedBlock error:(ErrorHandle)errorBlock;
+//存储是否收藏
+- (void)collectNewsWouldCollected:(NSString *)idString;
+
+- (void)fetchBeforeCollectionDataWithIdString:(NSString *)idString Succeed:(ZRBGetLastestNewsDictionaryHandle)succeedBlock error:(ErrorHandle)errorBlock;
+
+- (void)fetchNewCollectionDataWithidString:(NSString *)idString Succeed:(ZRBGetLastestNewsDictionaryHandle)succeedBlock error:(ErrorHandle)errorBlock;
 
 @end

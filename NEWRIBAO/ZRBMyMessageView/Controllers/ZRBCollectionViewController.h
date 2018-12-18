@@ -9,19 +9,22 @@
 #import <UIKit/UIKit.h>
 
 #import "ZRBCollectionManager.h"
-@interface ZRBCollectionViewController : UIViewController 
+@interface ZRBCollectionViewController : UIViewController
+<UITableViewDelegate,UITableViewDataSource,UINavigationControllerDelegate>
 
 @property (nonatomic, strong) NSMutableArray * collectionIdMutArray;
 
 @property (nonatomic, assign) NSString * collectionIdString;
 
-//单例
-+ (ZRBCollectionViewController *)sharedViewController;
+@property (nonatomic, strong) NSMutableArray * idMutArray;
+
+@property (nonatomic, assign) NSIndexPath * indexPath;
 
 @property (nonatomic, strong) NSMutableArray * titleMutArray;
 
 @property (nonatomic, strong) NSMutableArray * imageMutArray;
 
+@property (nonatomic, strong) UITableView * collectionTableView;
 - (void)fetchCollectionNewsDataFromCollectionManager;
 
 @end

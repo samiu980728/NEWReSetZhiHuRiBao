@@ -17,6 +17,8 @@
 
 @property (nonatomic, assign) NSInteger closeAndClickInteger;
 
+@property (nonatomic, strong) UIPageControl * pageController;
+
 @end
 
 @implementation ZRBMainViewController
@@ -48,6 +50,9 @@
     if ( [self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)] ){
         self.navigationController.interactivePopGestureRecognizer.delegate = nil;
     }
+    
+    _pageController = [[UIPageControl alloc] init];
+    
     _scrollView = [[UIScrollView alloc] initWithFrame:self.view.bounds];
     _scrollView.contentSize = CGSizeMake(0, 900);
     _scrollView.delegate = self;
@@ -70,6 +75,7 @@
     [_MainView.mainMessageTableView registerClass:[ZRBNewsTableViewCell class] forCellReuseIdentifier:@"messageCell"];
     [_MainView.mainMessageTableView registerClass:[ZRBDetailsTableViewHeaderFooterView class] forHeaderFooterViewReuseIdentifier:@"detailHeaderView"];
     _MainView.delegate = self;
+    [_scrollView addSubview:_pageController];
     [_scrollView addSubview:_MainView];
     _MainView.mainMessageTableView.delegate = self;
     _MainView.mainMessageTableView.dataSource = self;
@@ -79,8 +85,14 @@
     [_scrollView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.view);
     }];
+    [_pageController mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.mas_equalTo(_scrollView.mas_top);
+        make.bottom.mas_equalTo(150);
+        
+    }];
     [_MainView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.view);
+        make.top.mas_equalTo(self.pageController.mas_bottom);
+        //make.edges.equalTo(_scrollView);
     }];
     _barImageView = [[UIImageView alloc] init];
     _barImageView = self.navigationController.navigationBar.subviews.firstObject;
@@ -105,6 +117,9 @@
     if ( _imageRealSQLDataBase ) {
         NSLog(@"存在");
     }
+    
+    //轮播图
+    [self layout];
 }
 
 //侧边框栏的展开和关闭
@@ -236,15 +251,27 @@
     _mainTitleMutArray1 = [[NSMutableArray alloc] init];
     _titleMutArray1 = [[NSMutableArray alloc] init];
     _imageMutArray1 = [[NSMutableArray alloc] init];
+    _topStoryTitleMutArray = [[NSMutableArray alloc] init];
+    _topStroyImageMutArray = [[NSMutableArray alloc] init];
+    _topStoryMutArray = [[NSMutableArray alloc] init];
     
     dispatch_queue_t queue = dispatch_queue_create("NetRequestQueue", DISPATCH_QUEUE_SERIAL);
-   // dispatch_async(queue, ^{
-//    });
     if ( isRefresh == NO ){
         [[ZRBCoordinateMananger sharedManager] fetchDataFromNetisReferesh:NO Succeed:^(NSArray *array) {
             _ifNetRequestInteger = 1;
             TotalJSONModel * totalJSONModel = array[0];
             [_allDateMutArray addObject:totalJSONModel.date];
+            [_topStoryMutArray addObject:totalJSONModel.top_stories];
+            NSArray * topStries = totalJSONModel.top_stories;
+//            StoriesJSONModel * storyiesModel = _topStoryMutArray[;
+            //进行顶部轮播图信息的获取
+            for (NSInteger i = 0; i < topStries.count; i++) {
+                StoriesJSONModel * topStoriesModel = topStries[i];
+                [_topStoryTitleMutArray addObject:[topStoriesModel valueForKey:@"title"]];
+                [_topStroyImageMutArray addObject:[topStoriesModel valueForKey:@"image"]];
+            }
+#pragma mark 标题和图片已经获得！
+            
             NSArray * data = totalJSONModel.stories;
             for (int i = 0; i < data.count; i++) {
                 NSMutableArray * titleMutArray = [[NSMutableArray alloc] init];
@@ -329,7 +356,7 @@
         
     }
          //});
-    dispatch_time_t time = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3*NSEC_PER_SEC));
+    dispatch_time_t time = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5*NSEC_PER_SEC));
     dispatch_after(time, dispatch_get_main_queue(), ^{
         if (_ifNetRequestInteger == 0) {
             _haveGetSQLDataInteger = 1;
@@ -407,19 +434,6 @@
 
 //照片数据库创建失败！！！！！
 //原因：  manager 类里面传值失败！！！！
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
@@ -527,10 +541,97 @@
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self name:@"reloadDataTongZhiController" object:nil];
+    self.topScrollView = nil;
+    self.pageController = nil;
 }
 
 - (void)giveCellJSONModelToMainView:(NSMutableArray *)imaMutArray andTitle:(NSMutableArray *)titMutArray
 {
+}
+
+
+//轮播图差不多了！！！
+
+
+
+
+//滚动视图
+- (void)layout
+{
+    self.topScrollView = [[UIScrollView alloc] init];
+    [_scrollView addSubview:self.topScrollView];
+    [self.topScrollView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.mas_equalTo(_scrollView.mas_top);
+        make.height.mas_equalTo(220);
+        make.width.mas_equalTo(414);
+    }];
+    self.pageController = [[UIPageControl alloc] initWithFrame:CGRectMake(100, 140, 200, 30)];
+    [_scrollView addSubview:self.pageController];
+    int count = 4;
+    CGSize size = self.scrollView.frame.size;
+    
+    //1 动态生成5个imageView
+    for (int i = 0; i < count; i++) {
+        //
+        UIImageView *iconView = [[UIImageView alloc] init];
+        [self.topScrollView addSubview:iconView];
+        
+        NSString *imgName = [NSString stringWithFormat:@"%d.png",i+1];
+        iconView.image = [UIImage imageNamed:imgName];
+        
+        CGFloat x = i * size.width;
+        //frame
+        iconView.frame = CGRectMake(x, 0, size.width, 220);
+    }
+    
+    self.topScrollView.contentSize = CGSizeMake(count * size.width, 0);
+    self.topScrollView.showsHorizontalScrollIndicator = NO;
+    //3 设置分页
+    self.topScrollView.pagingEnabled = YES;
+    
+    //4 设置pageControl
+    self.pageController.numberOfPages = count;
+    self.pageController.currentPageIndicatorTintColor = [UIColor blueColor];
+    self.pageController.pageIndicatorTintColor = [UIColor blackColor];
+    //5 设置scrollView的代理
+    self.topScrollView.delegate = self;
+    [self addTimerTask];
+}
+
+//把定时器封装起来 方便调用
+-(void)addTimerTask{
+    //6 定时器
+    NSTimer *timer = [NSTimer timerWithTimeInterval:2.0 target:self selector:@selector(nextImage) userInfo:nil repeats:YES];
+    
+    self.timer = timer;
+    
+    //消息循环
+    NSRunLoop *runloop = [NSRunLoop currentRunLoop];
+    // 默认是NSDefaultRunLoopMode  但是另外一个属性NSRunLoopCommonModes 能够在多线程中起作用
+    [runloop addTimer:timer forMode:NSDefaultRunLoopMode];
+    
+    //立即执行定时器的方法  fire 是定时器自带的方法
+    // [timer fire];
+}
+
+-(void)nextImage{
+    //当前页码
+    NSInteger page = self.pageController.currentPage;
+    //如果是到达最后一张
+    if (page == self.pageController.numberOfPages - 1) {
+        page = 0;
+        //设置偏移量  当到达最后一张时候 切换到第一张  不产生从最后一张倒回第一张效果
+        _topScrollView.contentOffset = CGPointMake(0, 0);
+        [_topScrollView setContentOffset:_topScrollView.contentOffset animated:YES];
+    }else{
+        page++;
+    }
+    //  self.scrollView setContentOffset:(CGPoint) animated:(BOOL)
+    
+    CGFloat offsetX = page * self.topScrollView.frame.size.width;
+    [UIView animateWithDuration:1.0 animations:^{
+        self.topScrollView.contentOffset = CGPointMake(offsetX, 0);
+    }];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath

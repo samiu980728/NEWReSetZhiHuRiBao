@@ -65,6 +65,17 @@
 
 @property (nonatomic, strong) NSMutableArray * imageMutArray1;
 
+
+//顶部轮播图
+@property (nonatomic,strong) NSTimer *timer;
+
+@property (nonatomic, strong) UIScrollView * topScrollView;
+
+@property (nonatomic, strong) NSMutableArray * topStoryTitleMutArray;
+
+@property (nonatomic, strong) NSMutableArray * topStroyImageMutArray;
+
+@property (nonatomic, strong) NSMutableArray * topStoryMutArray;
 //专属id
 @property (nonatomic, strong) NSMutableArray * idSelfMutArray;
 
